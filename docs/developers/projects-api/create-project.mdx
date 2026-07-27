@@ -1,0 +1,143 @@
+---
+sidebar_position: 3
+title: Create a project
+description: POST /v1/projects — create a project, subject to role and plan limits.
+---
+
+# Create a project
+
+<ApiEndpoint method="POST" path="/v1/projects">Creates an active project and returns it.</ApiEndpoint>
+
+## Overview
+
+Creates a project in the key's workspace and returns the full object. The caller's key must have the Admin role. On success a `project.created` [webhook event](/developers/webhooks) fires.
+
+<Badge variant="admin">Admin role</Badge> <Badge variant="pro">Free plan: 3 active projects max</Badge>
+
+## Request
+
+### Body parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Display name, 1–120 characters. Unique within the workspace (case-insensitive). |
+
+### Headers
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
+| `Idempotency-Key` | Optional client-generated key; repeat requests with the same key return the original result instead of creating duplicates. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="json" label="JSON">
+
+The raw request payload, independent of language:
+
+```json
+{
+  "name": "Quarterly report"
+}
+```
+
+</TabItem>
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X POST https://api.example.com/v1/projects \
+  -H "Authorization: Bearer sk_live_4f8a…" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 2b1e4d8a-90c3" \
+  -d '{"name": "Quarterly report"}'
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpClient client = HttpClient.newHttpClient();
+String body = "{\"name\": \"Quarterly report\"}";
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/projects"))
+    .header("Authorization", "Bearer sk_live_4f8a…")
+    .header("Content-Type", "application/json")
+    .header("Idempotency-Key", "2b1e4d8a-90c3")
+    .POST(HttpRequest.BodyPublishers.ofString(body))
+    .build();
+HttpResponse<String> response =
+    client.send(request, HttpResponse.BodyHandlers.ofString());
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+response = requests.post(
+    "https://api.example.com/v1/projects",
+    json={"name": "Quarterly report"},
+    headers={
+        "Authorization": "Bearer sk_live_4f8a…",
+        "Idempotency-Key": "2b1e4d8a-90c3",
+    },
+    timeout=30,
+)
+response.raise_for_status()
+project = response.json()
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+const response = await fetch('https://api.example.com/v1/projects', {
+  method: 'POST',
+  headers: {
+    Authorization: 'Bearer sk_live_4f8a…',
+    'Content-Type': 'application/json',
+    'Idempotency-Key': '2b1e4d8a-90c3',
+  },
+  body: JSON.stringify({name: 'Quarterly report'}),
+});
+if (!response.ok) throw new Error(`API error ${response.status}`);
+const project = await response.json();
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`201 Created` — the new [project object](/developers/projects-api/#the-project-object):
+
+```json
+{
+  "id": "proj_8fK2m",
+  "name": "Quarterly report",
+  "status": "active",
+  "members": 1,
+  "created_at": "2026-07-26T10:15:00Z",
+  "updated_at": "2026-07-26T10:15:00Z"
+}
+```
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `201` | — | Project created. |
+| `400` | `validation_failed` | `name` missing, empty, or longer than 120 characters. |
+| `401` | `unauthenticated` | Missing, malformed, or revoked API key. |
+| `403` | `insufficient_role` | Key's role is below Admin. |
+| `409` | `name_conflict` | A project with this name already exists in the workspace. |
+| `422` | `project_limit_reached` | Free plan already has 3 active projects. |
+| `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+
+## Business rules
+
+- Name uniqueness is case-insensitive: `Reports` and `reports` conflict.
+- The Free-plan limit counts **active** projects only — archive or delete one to free a slot, or upgrade to Pro.
+- The creating user becomes the project's first member (`members: 1`).
+- Fires `project.created` to all webhook subscriptions after the transaction commits.
+- With `Idempotency-Key`, retries within 24 hours return the original `201` response — safe to retry on network errors.

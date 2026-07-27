@@ -1,0 +1,174 @@
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  DESIGN TOKENS — the single place visual design is defined.
+ *
+ *  Every component (cards, tables, figures, video frames, steps, badges,
+ *  navigation) consumes ONLY these variables. Change a value here and it
+ *  applies everywhere. Dark theme overrides live at the bottom.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* ── Brand color (primary ramp used by links, buttons, active nav) ──
+     Coral. #cc3f22 measures ≈4.9:1 on white — keeps WCAG AA (4.5:1) for
+     link/title text. Don't lighten the primary without re-checking. */
+  --doc-color-primary: #cc3f22;
+  --doc-color-primary-dark: #bc3a1f;
+  --doc-color-primary-darker: #b1371d;
+  --doc-color-primary-darkest: #922d18;
+  --doc-color-primary-light: #d94a2b;
+  --doc-color-primary-lighter: #e05a3c;
+  --doc-color-primary-lightest: #f0a08c;
+  --doc-color-accent: #f59e0b;
+
+  /* ── Surfaces & text ── */
+  --doc-color-bg: #ffffff;
+  --doc-color-surface: #f8fafc;      /* cards, frames, table headers */
+  --doc-color-surface-2: #eef2f7;    /* browser-chrome bars, hover fills */
+  --doc-color-border: #e2e8f0;
+  --doc-color-text: #1e293b;
+  --doc-color-text-muted: #64748b;
+
+  /* ── Typography ── */
+  --doc-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --doc-font-heading: var(--doc-font-body);
+  --doc-font-mono: ui-monospace, 'Cascadia Code', Consolas, 'SF Mono', Menlo, monospace;
+  --doc-font-size-base: 16px;
+  --doc-line-height: 1.65;
+
+  /* ── Shape ── */
+  --doc-radius-sm: 6px;
+  --doc-radius-md: 10px;
+  --doc-radius-lg: 14px;
+
+  /* ── Elevation ── */
+  --doc-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --doc-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --doc-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.14);
+
+  /* ── Motion (set both to 0s to disable animation globally) ── */
+  --doc-transition-fast: 120ms ease;
+  --doc-transition-base: 200ms ease;
+
+  /* ── Layout ── */
+  --doc-content-width: 44rem;        /* prose measure inside doc pages */
+  --doc-sidebar-width: 15rem;        /* left docs sidebar (Docusaurus default: 300px) */
+  --doc-sidebar-font-size: 0.85rem;  /* left sidebar menu text */
+  --doc-toc-width: 12rem;            /* right table-of-contents rail */
+  --doc-nav-height: 3.75rem;
+
+  /* ── Header (navbar) ── */
+  --doc-nav-bg: color-mix(in srgb, var(--doc-color-bg) 88%, transparent);
+  --doc-nav-blur: 10px;              /* frosted-glass strength; 0 to disable */
+  --doc-nav-accent: linear-gradient(90deg, var(--doc-color-primary), var(--doc-color-accent));
+  --doc-brand-word1: var(--doc-color-text);      /* first word of the product name */
+  --doc-brand-word2: var(--doc-color-primary);   /* remaining words */
+  --doc-nav-link-hover-bg: var(--doc-color-surface-2);
+  --doc-nav-search-bg: var(--doc-color-surface);
+  --doc-nav-search-focus-ring: color-mix(in srgb, var(--doc-color-primary) 22%, transparent);
+
+  /* ── Code blocks ── */
+  --doc-code-max-height: 22rem;      /* cap request/response samples; scroll beyond */
+
+  /* ── Content type scale (markdown headings) ── */
+  --doc-h1-size: 2rem;
+  --doc-h2-size: 1.5rem;
+  --doc-h3-size: 1.2rem;
+
+  /* ── Media frames (Figure + Video share these) ── */
+  --doc-frame-border: 1px solid var(--doc-color-border);
+  --doc-frame-radius: var(--doc-radius-lg);
+  --doc-frame-shadow: var(--doc-shadow-md);
+  --doc-frame-chrome-bg: var(--doc-color-surface-2);   /* browser top bar */
+  --doc-frame-chrome-dot: #cbd5e1;
+  --doc-frame-caption-color: var(--doc-color-text-muted);
+  --doc-frame-caption-size: 0.85rem;
+  --doc-frame-highlight: #e5484d;    /* screenshot element-highlight color */
+
+  /* ── Cards ── */
+  --doc-card-bg: var(--doc-color-bg);
+  --doc-card-border: 1px solid var(--doc-color-border);
+  --doc-card-radius: var(--doc-radius-md);
+  --doc-card-shadow: var(--doc-shadow-sm);
+  --doc-card-shadow-hover: var(--doc-shadow-md);
+  --doc-card-padding: 1.25rem;
+  --doc-card-min: 16rem;             /* min column width in a CardGrid */
+  --doc-card-icon-size: 2.1rem;      /* icon chip beside the card title */
+  --doc-card-icon-bg: color-mix(in srgb, var(--doc-color-primary) 10%, transparent);
+  --doc-card-icon-fg: var(--doc-color-primary);
+
+  /* ── Tables (applies to every Markdown table globally) ── */
+  --doc-table-head-bg: var(--doc-color-surface);
+  --doc-table-stripe-bg: rgba(148, 163, 184, 0.07);
+  --doc-table-row-hover: rgba(204, 63, 34, 0.06);
+  --doc-table-border: var(--doc-color-border);
+  --doc-table-radius: var(--doc-radius-md);
+
+  /* ── Steps ── */
+  --doc-step-marker-bg: var(--doc-color-primary);
+  --doc-step-marker-color: #ffffff;
+  --doc-step-marker-size: 1.75rem;
+  --doc-step-line: var(--doc-color-border);
+
+  /* ── Expandable ── */
+  --doc-expand-bg: var(--doc-color-surface);
+  --doc-expand-border: 1px solid var(--doc-color-border);
+  --doc-expand-radius: var(--doc-radius-md);
+
+  /* ── Badges ── */
+  --doc-badge-radius: 999px;
+  --doc-badge-new-bg: #dcfce7;   --doc-badge-new-fg: #15803d;
+  --doc-badge-beta-bg: #fef3c7;  --doc-badge-beta-fg: #b45309;
+  --doc-badge-pro-bg: #ede9fe;   --doc-badge-pro-fg: #6d28d9;
+  --doc-badge-admin-bg: #fee2e2; --doc-badge-admin-fg: #b91c1c;
+  --doc-badge-info-bg: #e0f2fe;  --doc-badge-info-fg: #0369a1;
+
+  /* ── Keyboard keys ── */
+  --doc-kbd-bg: var(--doc-color-surface);
+  --doc-kbd-border: var(--doc-color-border);
+  --doc-kbd-fg: var(--doc-color-text);
+}
+
+/* ═══ Dark theme ═══ */
+[data-theme='dark'] {
+  --doc-color-primary: #ff8a70;
+  --doc-color-primary-dark: #ff7a5c;
+  --doc-color-primary-darker: #ff6b4a;
+  --doc-color-primary-darkest: #f75532;
+  --doc-color-primary-light: #ff9c86;
+  --doc-color-primary-lighter: #ffab98;
+  --doc-color-primary-lightest: #ffc9bc;
+  --doc-color-accent: #fbbf24;
+
+  --doc-color-bg: #16181d;
+  --doc-color-surface: #1e2128;
+  --doc-color-surface-2: #262a33;
+  --doc-color-border: #333845;
+  --doc-color-text: #e2e8f0;
+  --doc-color-text-muted: #94a3b8;
+
+  --doc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --doc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --doc-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  --doc-frame-chrome-dot: #4b5563;
+  --doc-table-stripe-bg: rgba(148, 163, 184, 0.05);
+  --doc-table-row-hover: rgba(255, 138, 112, 0.09);
+
+  /* Dark text on the light-coral marker — white-on-coral fails contrast here. */
+  --doc-step-marker-color: #16181d;
+
+  --doc-badge-new-bg: #14532d;   --doc-badge-new-fg: #86efac;
+  --doc-badge-beta-bg: #451a03;  --doc-badge-beta-fg: #fcd34d;
+  --doc-badge-pro-bg: #2e1065;   --doc-badge-pro-fg: #c4b5fd;
+  --doc-badge-admin-bg: #450a0a; --doc-badge-admin-fg: #fca5a5;
+  --doc-badge-info-bg: #082f49;  --doc-badge-info-fg: #7dd3fc;
+}
+
+/* Accessibility: respect users who turn off animation at the OS level. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --doc-transition-fast: 0s;
+    --doc-transition-base: 0s;
+  }
+}

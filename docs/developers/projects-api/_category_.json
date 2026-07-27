@@ -1,0 +1,9 @@
+{
+  "label": "Projects API",
+  "position": 3,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "developers/projects-api/index"
+  }
+}

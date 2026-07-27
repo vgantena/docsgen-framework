@@ -1,0 +1,55 @@
+.endpoint {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 var(--ifm-leading);
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--doc-color-border);
+  border-radius: var(--doc-radius-md);
+  background: var(--doc-color-surface);
+}
+
+.method {
+  border-radius: var(--doc-radius-sm);
+  padding: 0.15rem 0.55rem;
+  font-family: var(--doc-font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.get {
+  background: var(--doc-badge-new-bg);
+  color: var(--doc-badge-new-fg);
+}
+
+.post {
+  background: var(--doc-badge-info-bg);
+  color: var(--doc-badge-info-fg);
+}
+
+.put,
+.patch {
+  background: var(--doc-badge-beta-bg);
+  color: var(--doc-badge-beta-fg);
+}
+
+.delete {
+  background: var(--doc-badge-admin-bg);
+  color: var(--doc-badge-admin-fg);
+}
+
+.path {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--doc-color-text);
+}
+
+.desc {
+  color: var(--doc-color-text-muted);
+  font-size: 0.85rem;
+}

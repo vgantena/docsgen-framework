@@ -1,0 +1,52 @@
+.steps > ol {
+  list-style: none;
+  counter-reset: doc-step;
+  padding-left: 0;
+  margin-bottom: var(--ifm-leading);
+}
+
+.steps > ol > li {
+  counter-increment: doc-step;
+  position: relative;
+  padding-left: calc(var(--doc-step-marker-size) + 1rem);
+  padding-bottom: 1.1rem;
+}
+
+.steps > ol > li:last-child {
+  padding-bottom: 0;
+}
+
+/* Numbered circle */
+.steps > ol > li::before {
+  content: counter(doc-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--doc-step-marker-size);
+  height: var(--doc-step-marker-size);
+  border-radius: 50%;
+  background: var(--doc-step-marker-bg);
+  color: var(--doc-step-marker-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Connecting line between steps */
+.steps > ol > li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--doc-step-marker-size) / 2 - 1px);
+  top: calc(var(--doc-step-marker-size) + 4px);
+  bottom: 4px;
+  width: 2px;
+  background: var(--doc-step-line);
+  border-radius: 1px;
+}
+
+/* Nested content (images, code, sub-lists) aligns under the step text. */
+.steps > ol > li > :global(*) {
+  margin-bottom: 0.5rem;
+}

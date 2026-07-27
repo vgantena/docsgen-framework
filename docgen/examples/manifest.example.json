@@ -1,0 +1,55 @@
+{
+  "templateVersion": "1.0.0",
+  "specHash": "6e1319d3e9bce3d7",
+  "generatedAt": "2026-07-27T00:00:00Z",
+  "pages": {
+    "docs/developers/list-projects.mdx": {
+      "source": "backend",
+      "operations": [
+        "listProjects"
+      ],
+      "operationHashes": {
+        "listProjects": "98ebb97be15f8081"
+      },
+      "sourceFiles": {},
+      "humanEdited": false,
+      "generatedAt": "2026-07-27T00:00:00Z"
+    },
+    "docs/developers/create-project.mdx": {
+      "source": "backend",
+      "operations": [
+        "createProject"
+      ],
+      "operationHashes": {
+        "createProject": "1305b8195a7e3485"
+      },
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": "2026-07-27T00:00:00Z"
+    },
+    "docs/developers/delete-project.mdx": {
+      "source": "backend",
+      "operations": [
+        "deleteProject"
+      ],
+      "operationHashes": {
+        "deleteProject": "cf20bd901e915c93"
+      },
+      "sourceFiles": {},
+      "humanEdited": false,
+      "generatedAt": "2026-07-27T00:00:00Z"
+    },
+    "docs/developers/health-check.mdx": {
+      "source": "backend",
+      "operations": [
+        "healthCheck"
+      ],
+      "operationHashes": {
+        "healthCheck": "9f88f3f46dd645c7"
+      },
+      "sourceFiles": {},
+      "humanEdited": false,
+      "generatedAt": "2026-07-27T00:00:00Z"
+    }
+  }
+}

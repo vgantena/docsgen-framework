@@ -1,0 +1,18 @@
+{
+  "title": "User Manual",
+  "author": "Your Company",
+  "output": "build/manual.pdf",
+  "chapters": [
+    "docs/getting-started.md",
+    "docs/guides/managing-projects.md",
+    "docs/developers/index.md",
+    "docs/developers/authentication.mdx",
+    "docs/developers/projects-api/index.mdx",
+    "docs/developers/projects-api/list-projects.mdx",
+    "docs/developers/projects-api/create-project.mdx",
+    "docs/developers/projects-api/get-project.mdx",
+    "docs/developers/projects-api/update-project.mdx",
+    "docs/developers/projects-api/delete-project.mdx",
+    "docs/developers/webhooks.mdx"
+  ]
+}

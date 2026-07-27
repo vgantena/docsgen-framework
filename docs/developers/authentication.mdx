@@ -1,0 +1,93 @@
+---
+sidebar_position: 2
+title: Authentication
+description: Create an API key and authenticate requests with a Bearer token.
+---
+
+# Authentication
+
+Every API request authenticates with an API key sent as a Bearer token. Keys are scoped to a workspace and inherit the creating user's role.
+
+## Create an API key
+
+<Steps>
+
+1. Open **Settings**.
+
+2. Select **API keys**.
+
+3. Select **New API key**.
+
+4. Name the key after the integration that will use it.
+
+5. Select **Create**.
+
+6. Copy the key now — for security it's shown only once.
+
+</Steps>
+
+:::warning
+Treat API keys like passwords. Store them in a secrets manager, never in source control. Rotate a key immediately if it may have leaked.
+:::
+
+## Authenticate a request
+
+Pass the key in the `Authorization` header:
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl https://api.example.com/v1/projects \
+  -H "Authorization: Bearer sk_live_4f8a…"
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.example.com/v1/projects",
+    headers={"Authorization": "Bearer sk_live_4f8a…"},
+    timeout=30,
+)
+response.raise_for_status()
+projects = response.json()["data"]
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+const response = await fetch('https://api.example.com/v1/projects', {
+  headers: {Authorization: 'Bearer sk_live_4f8a…'},
+});
+if (!response.ok) throw new Error(`API error ${response.status}`);
+const {data: projects} = await response.json();
+```
+
+</TabItem>
+</Tabs>
+
+A `401 Unauthorized` response means the key is missing, malformed, or revoked. A `403 Forbidden` means the key is valid but its role can't access the resource.
+
+## Rotate a key
+
+<Steps>
+
+1. Create a replacement key.
+
+2. Deploy the new key to your integration.
+
+3. Verify the integration works with the new key.
+
+4. Revoke the old key from **Settings** → **API keys**.
+
+</Steps>
+
+## Related
+
+- [Developer guide](/developers/) — request conventions and error format
+- [Projects API](/developers/projects-api/) — your first authenticated resource

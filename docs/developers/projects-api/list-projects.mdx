@@ -1,0 +1,121 @@
+---
+sidebar_position: 2
+title: List projects
+description: GET /v1/projects — list projects with filtering and cursor pagination.
+---
+
+# List projects
+
+<ApiEndpoint method="GET" path="/v1/projects">Returns projects in the workspace, newest first.</ApiEndpoint>
+
+## Overview
+
+Returns every project the API key's role can see, newest first, with cursor pagination. Use it to sync project lists into your own systems or to resolve a project `id` by name.
+
+<Badge variant="info">Member role or higher</Badge> <Badge variant="new">All plans</Badge>
+
+## Request
+
+### Query parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | string | No | Filter by `active` or `archived`. Default: both. |
+| `limit` | integer | No | Page size, 1–100. Default: 25. |
+| `cursor` | string | No | `next_cursor` value from a previous response. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl "https://api.example.com/v1/projects?status=active&limit=10" \
+  -H "Authorization: Bearer sk_live_4f8a…"
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/projects?status=active&limit=10"))
+    .header("Authorization", "Bearer sk_live_4f8a…")
+    .GET()
+    .build();
+HttpResponse<String> response =
+    client.send(request, HttpResponse.BodyHandlers.ofString());
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.example.com/v1/projects",
+    params={"status": "active", "limit": 10},
+    headers={"Authorization": "Bearer sk_live_4f8a…"},
+    timeout=30,
+)
+response.raise_for_status()
+projects = response.json()["data"]
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+const response = await fetch(
+  'https://api.example.com/v1/projects?status=active&limit=10',
+  {headers: {Authorization: 'Bearer sk_live_4f8a…'}},
+);
+if (!response.ok) throw new Error(`API error ${response.status}`);
+const {data: projects, next_cursor} = await response.json();
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`200 OK` — an array of [project objects](/developers/projects-api/#the-project-object) plus a pagination cursor:
+
+```json
+{
+  "data": [
+    {
+      "id": "proj_8fK2m",
+      "name": "Quarterly report",
+      "status": "active",
+      "members": 4,
+      "created_at": "2026-07-01T09:30:00Z",
+      "updated_at": "2026-07-20T14:05:12Z"
+    }
+  ],
+  "next_cursor": "cur_9hT3p"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data` | array | Project objects, newest first. |
+| `next_cursor` | string \| null | Pass as `cursor` to fetch the next page. `null` on the last page. |
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `200` | — | Success, including an empty `data` array. |
+| `400` | `invalid_parameter` | `status` isn't `active`/`archived`, or `limit` is outside 1–100. |
+| `401` | `unauthenticated` | Missing, malformed, or revoked API key. |
+| `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+
+## Business rules
+
+- Results are scoped to the key's workspace — there's no cross-workspace listing.
+- Members see only projects they belong to; Admin keys see every project.
+- Cursors expire after 10 minutes; restart from the first page if a cursor is rejected.
+- Archived projects stay listed (with `status: "archived"`) until deleted.

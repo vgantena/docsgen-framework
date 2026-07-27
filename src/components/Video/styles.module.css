@@ -1,0 +1,46 @@
+.figure {
+  margin: 0 0 var(--ifm-leading);
+}
+
+.frameBox {
+  border: var(--doc-frame-border);
+  border-radius: var(--doc-frame-radius);
+  box-shadow: var(--doc-frame-shadow);
+  overflow: hidden;
+  background: var(--doc-color-surface);
+}
+
+.noFrame {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--doc-frame-chrome-bg);
+  border-bottom: 1px solid var(--doc-color-border);
+}
+
+.chrome span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--doc-frame-chrome-dot);
+}
+
+.video {
+  display: block;
+  width: 100%;
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: var(--doc-frame-caption-size);
+  color: var(--doc-frame-caption-color);
+  text-align: center;
+}

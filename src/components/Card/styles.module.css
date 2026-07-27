@@ -1,0 +1,89 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--doc-card-min), 100%), 1fr));
+  gap: 1rem;
+  margin-bottom: var(--ifm-leading);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--doc-card-bg);
+  border: var(--doc-card-border);
+  border-radius: var(--doc-card-radius);
+  box-shadow: var(--doc-card-shadow);
+  padding: var(--doc-card-padding);
+  color: var(--doc-color-text);
+  transition: box-shadow var(--doc-transition-base), border-color var(--doc-transition-base),
+    transform var(--doc-transition-base);
+}
+
+.clickable {
+  text-decoration: none;
+}
+
+.clickable:hover {
+  box-shadow: var(--doc-card-shadow-hover);
+  border-color: var(--doc-color-primary);
+  text-decoration: none;
+  color: var(--doc-color-text);
+  transform: translateY(-2px);
+}
+
+/* Header row: icon chip + title on one line. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.45rem;
+}
+
+.iconChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--doc-card-icon-size);
+  height: var(--doc-card-icon-size);
+  border-radius: var(--doc-radius-sm);
+  background: var(--doc-color-surface-2); /* fallback for no color-mix() */
+  background: var(--doc-card-icon-bg);
+  color: var(--doc-card-icon-fg);
+}
+
+.iconChip svg {
+  width: 60%;
+  height: 60%;
+}
+
+.title {
+  font-family: var(--doc-font-heading);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.clickable .title {
+  color: var(--doc-color-primary);
+}
+
+.desc {
+  font-size: 0.92rem;
+  color: var(--doc-color-text-muted);
+  line-height: 1.5;
+}
+
+.arrow {
+  position: absolute;
+  top: var(--doc-card-padding);
+  right: var(--doc-card-padding);
+  color: var(--doc-color-primary);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--doc-transition-base), transform var(--doc-transition-base);
+}
+
+.clickable:hover .arrow {
+  opacity: 1;
+  transform: translateX(0);
+}

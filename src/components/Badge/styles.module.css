@@ -1,0 +1,36 @@
+.badge {
+  display: inline-block;
+  border-radius: var(--doc-badge-radius);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.18em 0.7em;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+.new {
+  background: var(--doc-badge-new-bg);
+  color: var(--doc-badge-new-fg);
+}
+
+.beta {
+  background: var(--doc-badge-beta-bg);
+  color: var(--doc-badge-beta-fg);
+}
+
+.pro {
+  background: var(--doc-badge-pro-bg);
+  color: var(--doc-badge-pro-fg);
+}
+
+.admin {
+  background: var(--doc-badge-admin-bg);
+  color: var(--doc-badge-admin-fg);
+}
+
+.info {
+  background: var(--doc-badge-info-bg);
+  color: var(--doc-badge-info-fg);
+}

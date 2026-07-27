@@ -1,0 +1,358 @@
+/**
+ * GLOBAL STYLES — maps design tokens (tokens.css) onto the Docusaurus theme
+ * and styles plain-Markdown elements (tables, images, kbd, details) so every
+ * page follows the system without any per-page work.
+ *
+ * Do not put raw color/size values here — add a token in tokens.css instead.
+ */
+
+@import './tokens.css';
+
+:root {
+  --ifm-color-primary: var(--doc-color-primary);
+  --ifm-color-primary-dark: var(--doc-color-primary-dark);
+  --ifm-color-primary-darker: var(--doc-color-primary-darker);
+  --ifm-color-primary-darkest: var(--doc-color-primary-darkest);
+  --ifm-color-primary-light: var(--doc-color-primary-light);
+  --ifm-color-primary-lighter: var(--doc-color-primary-lighter);
+  --ifm-color-primary-lightest: var(--doc-color-primary-lightest);
+
+  --ifm-font-family-base: var(--doc-font-body);
+  --ifm-heading-font-family: var(--doc-font-heading);
+  --ifm-font-family-monospace: var(--doc-font-mono);
+  --ifm-font-size-base: var(--doc-font-size-base);
+  --ifm-line-height-base: var(--doc-line-height);
+  --ifm-code-font-size: 92%;
+
+  --ifm-global-radius: var(--doc-radius-md);
+  --ifm-navbar-height: var(--doc-nav-height);
+  --ifm-background-color: var(--doc-color-bg);
+  --ifm-toc-border-color: var(--doc-color-border);
+
+  --docusaurus-highlighted-code-line-bg: rgba(232, 89, 63, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-background-color: var(--doc-color-bg);
+  --ifm-background-surface-color: var(--doc-color-surface);
+  --docusaurus-highlighted-code-line-bg: rgba(255, 138, 112, 0.15);
+}
+
+/* ── Layout: compact sidebars + readable content measure ─────────────── */
+/* Left sidebar — overrides the theme's own --doc-sidebar-width (300px). */
+@media (min-width: 997px) {
+  /* Right TOC rail: shrink its column from 25% to a fixed width. */
+  .row .col.col--3 {
+    flex: 0 0 var(--doc-toc-width);
+    max-width: var(--doc-toc-width);
+  }
+
+  /* Prose column: cap the measure so lines stay readable on wide screens. */
+  .theme-doc-markdown {
+    max-width: var(--doc-content-width);
+  }
+}
+
+/* Markdown heading scale — the theme default (3rem H1) reads oversized. */
+.theme-doc-markdown h1,
+.theme-doc-markdown header h1 {
+  font-size: var(--doc-h1-size);
+}
+
+.theme-doc-markdown h2 {
+  font-size: var(--doc-h2-size);
+}
+
+.theme-doc-markdown h3 {
+  font-size: var(--doc-h3-size);
+}
+
+/* ── Header / navigation ─────────────────────────────────────────────── */
+.navbar {
+  background: var(--doc-color-bg); /* fallback for browsers without color-mix() */
+  background: var(--doc-nav-bg);
+  backdrop-filter: saturate(160%) blur(var(--doc-nav-blur));
+  -webkit-backdrop-filter: saturate(160%) blur(var(--doc-nav-blur));
+  box-shadow: none;
+  border-bottom: 1px solid var(--doc-color-border);
+}
+
+/* Brand accent: thin gradient line across the very top. */
+.navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--doc-nav-accent);
+}
+
+/* Two-tone brand wordmark (rendered as an html navbar item):
+   words joined "YourProduct"-style, colors split by token. */
+.brand-wordmark {
+  display: inline-flex;
+  gap: 0;
+  align-items: baseline;
+  margin-right: 0.9rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.brand-wordmark:hover {
+  text-decoration: none;
+}
+
+.brand-word1 {
+  color: var(--doc-brand-word1);
+}
+
+.brand-word2 {
+  color: var(--doc-brand-word2);
+}
+
+/* Logo sits flush against the wordmark. */
+.navbar__brand {
+  margin-right: 0;
+}
+
+.navbar__logo {
+  height: 1.6rem;
+  width: 1.6rem;
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Kill the nav item padding between the logo and the wordmark. */
+.navbar__items .navbar__item:has(.brand-wordmark) {
+  padding-left: 0.3rem;
+}
+
+/* Mobile (<997px): the desktop wordmark item is hidden by the theme, so show
+   the plain navbar title next to the logo; on desktop the wordmark replaces it.
+   Also hide the wordmark's stray copy inside the drawer menu. */
+@media (min-width: 997px) {
+  .navbar__title {
+    display: none;
+  }
+}
+
+.menu__list-item:has(.brand-wordmark) {
+  display: none;
+}
+
+/* Lucide icons inside DRAWER menu items (html nav items render there too). */
+.menu__link svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex-shrink: 0;
+  margin-right: 0.45rem;
+  vertical-align: -0.15em;
+}
+
+/* Nav items: soft pill on hover, tab-style underline when active. */
+.navbar__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: var(--doc-radius-sm);
+  padding: 0.375rem 0.75rem;
+  margin: 0 0.125rem;
+  font-weight: 500;
+  transition: background var(--doc-transition-fast), color var(--doc-transition-fast);
+}
+
+/* Lucide icons inside nav items (rendered via the html label). */
+.navbar__link svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.navbar__link:hover {
+  background: var(--doc-nav-link-hover-bg);
+  color: var(--doc-color-text);
+}
+
+.navbar__link--active,
+.navbar__link--active:hover {
+  background: transparent;
+  color: var(--doc-color-primary);
+  font-weight: 600;
+}
+
+.navbar__link--active::after {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--doc-color-primary);
+}
+
+/* Search box: visible surface + focus ring instead of the flat default. */
+.navbar__search-input {
+  background-color: var(--doc-nav-search-bg);
+  border: 1px solid var(--doc-color-border);
+  border-radius: 999px;
+  transition: border-color var(--doc-transition-fast), box-shadow var(--doc-transition-fast);
+}
+
+.navbar__search-input:focus {
+  border-color: var(--doc-color-primary);
+  box-shadow: 0 0 0 3px rgba(204, 63, 34, 0.22); /* fallback for no color-mix() */
+  box-shadow: 0 0 0 3px var(--doc-nav-search-focus-ring);
+  outline: none;
+}
+
+/* ── Left sidebar: compact type ──────────────────────────────────────── */
+.menu {
+  font-size: var(--doc-sidebar-font-size);
+}
+
+.menu__link {
+  padding: 0.35rem 0.75rem;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* Sidebar category chevrons animate with the global motion token. */
+.menu__caret::before,
+.menu__link--sublist-caret::after {
+  transition: transform var(--doc-transition-base);
+}
+
+/* ── Markdown tables (every table, globally) ─────────────────────────── */
+.markdown table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--doc-table-border);
+  border-radius: var(--doc-table-radius);
+  overflow: hidden;
+  font-size: 0.95rem;
+}
+
+/* Mobile: restore the theme's scroll-inside-the-table behavior so wide
+   API tables don't force whole-page horizontal scrolling. */
+@media (max-width: 996px) {
+  .markdown table {
+    display: block;
+    overflow-x: auto;
+    border-radius: var(--doc-radius-sm);
+  }
+}
+
+.markdown table thead tr {
+  background: var(--doc-table-head-bg);
+}
+
+.markdown table th {
+  border: none;
+  border-bottom: 2px solid var(--doc-table-border);
+  text-align: left;
+  font-weight: 600;
+  padding: 0.65rem 0.9rem;
+}
+
+.markdown table td {
+  border: none;
+  border-bottom: 1px solid var(--doc-table-border);
+  padding: 0.6rem 0.9rem;
+  vertical-align: top;
+}
+
+.markdown table tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown table tbody tr:nth-child(even) {
+  background: var(--doc-table-stripe-bg);
+}
+
+.markdown table tbody tr:hover {
+  background: var(--doc-table-row-hover);
+}
+
+/* ── Plain Markdown images get a subtle consistent frame ─────────────── */
+.markdown > p > img {
+  border-radius: var(--doc-radius-md);
+  border: var(--doc-frame-border);
+  box-shadow: var(--doc-shadow-sm);
+}
+
+/* ── Keyboard keys: `<kbd>` anywhere ─────────────────────────────────── */
+kbd {
+  background: var(--doc-kbd-bg);
+  border: 1px solid var(--doc-kbd-border);
+  border-bottom-width: 2px;
+  border-radius: var(--doc-radius-sm);
+  color: var(--doc-kbd-fg);
+  font-family: var(--doc-font-mono);
+  font-size: 0.8em;
+  padding: 0.15em 0.5em;
+  box-shadow: none;
+}
+
+/* ── Native <details> in Markdown picks up the Expandable look ───────── */
+.markdown details {
+  background: var(--doc-expand-bg);
+  border: var(--doc-expand-border);
+  border-radius: var(--doc-expand-radius);
+  box-shadow: none;
+}
+
+/* ── Footer: one slim row — links left, copyright right ──────────────── */
+.footer {
+  border-top: 1px solid var(--doc-color-border);
+  background: var(--doc-color-surface);
+  padding: 0.85rem 0;
+}
+
+.footer > .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 1.5rem;
+}
+
+.footer__links {
+  margin-bottom: 0;
+}
+
+.footer .footer__bottom {
+  text-align: right;
+}
+
+.footer__link-item {
+  color: var(--doc-color-text-muted);
+  font-size: 0.85rem;
+}
+
+.footer__link-item:hover {
+  color: var(--doc-color-primary);
+  text-decoration: none;
+}
+
+.footer__copyright {
+  color: var(--doc-color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* ── Focus visibility (a11y): consistent ring on interactive elements ── */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--doc-color-primary);
+  outline-offset: 2px;
+}

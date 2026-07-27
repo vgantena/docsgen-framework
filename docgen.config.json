@@ -1,0 +1,25 @@
+{
+  "$comment": "Docs-generation pipeline definition. Committed — same for everyone. Secrets and machine-specific values go in .env (see .env.example). Bump templateVersion ONLY when the page templates/standards change: it marks every generated page stale for a deliberate full regeneration.",
+  "templateVersion": "1.0.0",
+  "sources": [
+    {
+      "id": "backend",
+      "repo": "../your-api-repo",
+      "type": "api",
+      "extract": {
+        "kind": "openapi",
+        "spec": "build/openapi.json"
+      },
+      "output": "docs/developers"
+    },
+    {
+      "id": "webapp",
+      "repo": "../your-web-repo",
+      "type": "ui",
+      "extract": {
+        "kind": "routes"
+      },
+      "output": "docs/guides"
+    }
+  ]
+}

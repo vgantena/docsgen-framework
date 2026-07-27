@@ -1,0 +1,99 @@
+---
+sidebar_position: 6
+title: Delete a project
+description: DELETE /v1/projects/{id} — permanently delete a project and its contents.
+---
+
+# Delete a project
+
+<ApiEndpoint method="DELETE" path="/v1/projects/{id}">Permanently deletes a project and everything in it.</ApiEndpoint>
+
+## Overview
+
+Permanently removes a project, its tasks, and its member associations. There is no undo and no recycle bin.
+
+<Badge variant="admin">Admin role</Badge> <Badge variant="new">All plans</Badge>
+
+:::warning
+Deletion cascades to **all tasks and files** in the project. If the data may be needed later, [archive instead](/developers/projects-api/update-project) — `PATCH /v1/projects/{id}` with `{"status": "archived"}`.
+:::
+
+## Request
+
+### Path parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Project identifier, for example `proj_8fK2m`. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X DELETE https://api.example.com/v1/projects/proj_8fK2m \
+  -H "Authorization: Bearer sk_live_4f8a…"
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/projects/proj_8fK2m"))
+    .header("Authorization", "Bearer sk_live_4f8a…")
+    .DELETE()
+    .build();
+HttpResponse<Void> response =
+    client.send(request, HttpResponse.BodyHandlers.discarding());
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+response = requests.delete(
+    "https://api.example.com/v1/projects/proj_8fK2m",
+    headers={"Authorization": "Bearer sk_live_4f8a…"},
+    timeout=30,
+)
+response.raise_for_status()  # 204 on success
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+const response = await fetch(
+  'https://api.example.com/v1/projects/proj_8fK2m',
+  {method: 'DELETE', headers: {Authorization: 'Bearer sk_live_4f8a…'}},
+);
+if (response.status !== 204) throw new Error(`API error ${response.status}`);
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`204 No Content` — empty body on success.
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `204` | — | Project deleted. |
+| `401` | `unauthenticated` | Missing, malformed, or revoked API key. |
+| `403` | `insufficient_role` | Key's role is below Admin. |
+| `404` | `resource_not_found` | No project with this `id` — including one already deleted. |
+| `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+
+## Business rules
+
+- Deletion is **permanent** — data is unrecoverable once the request returns `204`.
+- Cascades: all tasks, files, and member associations in the project are removed.
+- Deleting an already-deleted project returns `404`, so a retried delete is safe to treat as success.
+- Fires `project.deleted` to all [webhook subscriptions](/developers/webhooks); the event carries the final state of the object.
+- A deleted project's name becomes available for reuse immediately.

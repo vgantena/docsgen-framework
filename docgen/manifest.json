@@ -1,0 +1,48 @@
+{
+  "$comment": "Provenance manifest — the join table between source contracts and generated doc pages. Written by the generation step, read by tools/docgen-plan.mjs. The projects-api pages below are hand-authored (humanEdited: true, no recorded hashes), so a real spec's changes route them to REVIEW instead of proposing duplicates. See docgen/README.md.",
+  "templateVersion": "1.0.0",
+  "specHash": null,
+  "generatedAt": null,
+  "pages": {
+    "docs/developers/projects-api/list-projects.mdx": {
+      "source": "backend",
+      "operations": ["listProjects"],
+      "operationHashes": {},
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": null
+    },
+    "docs/developers/projects-api/create-project.mdx": {
+      "source": "backend",
+      "operations": ["createProject"],
+      "operationHashes": {},
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": null
+    },
+    "docs/developers/projects-api/get-project.mdx": {
+      "source": "backend",
+      "operations": ["getProject"],
+      "operationHashes": {},
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": null
+    },
+    "docs/developers/projects-api/update-project.mdx": {
+      "source": "backend",
+      "operations": ["updateProject"],
+      "operationHashes": {},
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": null
+    },
+    "docs/developers/projects-api/delete-project.mdx": {
+      "source": "backend",
+      "operations": ["deleteProject"],
+      "operationHashes": {},
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": null
+    }
+  }
+}

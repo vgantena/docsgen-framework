@@ -1,0 +1,95 @@
+---
+sidebar_position: 3
+title: Writing standards
+description: Page types, style rules, media pipeline, and the quality gates every page must pass.
+---
+
+# Writing standards
+
+These standards keep every page consistent regardless of who (or what) wrote it.
+
+## Page types
+
+Every page is exactly one of five types — never mix them:
+
+| Type | Purpose | Template |
+| --- | --- | --- |
+| Concept | What something is and why it matters — no steps | `templates/concept.md` |
+| Task | One goal, numbered steps | `templates/task.md` |
+| Reference | Tables of settings, limits, fields | `templates/reference.md` |
+| API endpoint | One REST endpoint: schemas, samples, errors, business rules | `templates/api-endpoint.md` |
+| Troubleshooting | Symptom → cause → fix | `templates/troubleshooting.md` |
+
+## Page templates
+
+Start every new page by copying its template from the `templates/` folder at the repo root. The task template skeleton:
+
+```markdown
+---
+title: <Verb + object, e.g. "Invite team members">
+description: <One sentence, ≤160 chars, states the outcome>
+sidebar_position: <n>
+---
+
+One-paragraph intro: what you'll accomplish and when you'd want to.
+
+## Before you begin
+## Steps
+## Verify
+## Troubleshooting   (only if needed)
+## Related
+```
+
+## Style rules
+
+- Second person ("you"), imperative steps ("Select **Save**"), present tense.
+- One action per numbered step — if a step needs "and," split it.
+- Bold UI element names exactly as the product shows them: **Settings**.
+- Keyboard keys in `<kbd>` tags.
+- Define jargon at first use or link its concept page.
+- Banned words in docs: "simply," "just," "easy," marketing superlatives.
+- `:::warning` before any destructive or irreversible action.
+
+## Media pipeline
+
+### Screenshots
+
+```bash
+npm run capture -- --url /settings --out static/img/settings/api-keys.png --highlight "#new-key-btn"
+```
+
+- 1280×800 viewport at 2× scale, element highlighting built in.
+- Name files `verb-object.png` under `static/img/<section>/`.
+- Every image needs real alt text — describe what's shown.
+- Only seeded demo data on screen. Never real customer data.
+
+### Short videos
+
+```bash
+npm run record -- --flow tools/flows/example-flow.mjs --out static/video/projects/create-project
+```
+
+- 15–60 seconds, silent. Playwright records `.webm`; ffmpeg produces the web-ready `.mp4` automatically.
+- Embed with `<Video src="/video/…" />`. Longer tutorials go to your video host and get embedded instead.
+
+## Quality gates
+
+Run before committing — all five must pass:
+
+```bash
+npm run lint:md      # markdownlint-cli2: structure
+npm run lint:prose   # Vale (Microsoft style): language
+npm run typecheck    # components and config
+npm test             # tooling unit tests
+npm run build        # broken-link check
+```
+
+## PDF manual
+
+The same Markdown builds a printable manual (chapters listed in `tools/pdf-manifest.json`):
+
+```bash
+npm run pdf
+```
+
+Component notes: `Figure` becomes a plain image, `Video` becomes a link line, Mermaid diagrams are skipped in PDF output.

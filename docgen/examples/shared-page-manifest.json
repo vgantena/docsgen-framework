@@ -1,0 +1,45 @@
+{
+  "templateVersion": "1.0.0",
+  "specHash": null,
+  "generatedAt": null,
+  "pages": {
+    "docs/developers/projects.mdx": {
+      "source": "backend",
+      "operations": [
+        "listProjects",
+        "deleteProject"
+      ],
+      "operationHashes": {
+        "listProjects": "98ebb97be15f8081",
+        "deleteProject": "cf20bd901e915c93"
+      },
+      "sourceFiles": {},
+      "humanEdited": false,
+      "generatedAt": null
+    },
+    "docs/developers/create-project.mdx": {
+      "source": "backend",
+      "operations": [
+        "createProject"
+      ],
+      "operationHashes": {
+        "createProject": "1305b8195a7e3485"
+      },
+      "sourceFiles": {},
+      "humanEdited": true,
+      "generatedAt": "2026-07-27T00:00:00Z"
+    },
+    "docs/developers/health-check.mdx": {
+      "source": "backend",
+      "operations": [
+        "healthCheck"
+      ],
+      "operationHashes": {
+        "healthCheck": "9f88f3f46dd645c7"
+      },
+      "sourceFiles": {},
+      "humanEdited": false,
+      "generatedAt": "2026-07-27T00:00:00Z"
+    }
+  }
+}

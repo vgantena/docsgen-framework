@@ -1,0 +1,9 @@
+{
+  "label": "Framework",
+  "position": 90,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "How this documentation framework works: components, configuration, and writing standards."
+  }
+}

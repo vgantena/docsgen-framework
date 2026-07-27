@@ -1,0 +1,207 @@
+---
+sidebar_position: 1
+title: Component library
+description: Live showcase of every documentation component — usable in any page with no imports.
+---
+
+# Component library
+
+Every component below is globally registered — use it in **any** `.md`/`.mdx` page with no import line. All styling flows from the design tokens in `src/css/tokens.css`.
+
+## Cards
+
+Clickable navigation cards in a responsive grid:
+
+<CardGrid>
+  <Card title="Getting started" icon="rocket" href="/getting-started">
+    A clickable card — the whole surface is the link.
+  </Card>
+  <Card title="Static card" icon="package">
+    Without `href`, a card is a plain content panel.
+  </Card>
+</CardGrid>
+
+```jsx
+<CardGrid>
+  <Card title="Getting started" icon="rocket" href="/getting-started">
+    A clickable card — the whole surface is the link.
+  </Card>
+  <Card title="Static card" icon="package">
+    Without `href`, a card is a plain content panel.
+  </Card>
+</CardGrid>
+```
+
+`CardGrid` accepts `columns={2}` to force a fixed column count. `icon` takes a [Lucide](https://lucide.dev) icon name from the registry in `src/components/Card/icons.tsx` — `rocket`, `book-open`, `code`, `puzzle`, `sliders`, `key`, `folder`, `bell`, `package` — rendered on a light brand-tinted chip beside the title. Add icons by pasting Lucide paths into the registry; emojis aren't used.
+
+## Figure — image frames
+
+Screenshots get a consistent frame, caption, and click-to-expand lightbox. `frame="browser"` adds browser chrome; try clicking the image:
+
+<Figure
+  src="/img/placeholder/dashboard.svg"
+  alt="Dashboard with sidebar navigation, stat cards, and an activity chart"
+  caption="frame=&quot;browser&quot; with zoom enabled (click the image)."
+  frame="browser"
+/>
+
+```jsx
+<Figure
+  src="/img/products/dashboard.png"
+  alt="Dashboard with sidebar navigation, stat cards, and an activity chart"
+  caption="The dashboard after first sign-in."
+  frame="browser"        // 'plain' (default) | 'browser' | 'none'
+  zoom                   // click-to-expand lightbox (default true)
+  width={720}            // optional max width
+/>
+```
+
+## Video — video frames
+
+Same framing system for short workflow clips. `autoPlay` turns a clip into a silent GIF-style loop:
+
+<Video
+  src="/video/getting-started-tour.mp4"
+  poster="/video/getting-started-tour.jpg"
+  caption="Sample training video: from the help-center home through the Getting started guide (recorded with npm run record)."
+  frame="browser"
+/>
+
+```jsx
+<Video
+  src="/video/projects/create-project.mp4"
+  poster="/video/projects/create-project.jpg"  // npm run record generates this
+  caption="Creating a project (12s)."
+  frame="browser"          // 'plain' (default) | 'browser' | 'none'
+  startAt={3}              // skip an intro: begin at 0:03
+  playbackRate={1.25}      // speed up slow walkthroughs
+  muted                    // start silent (implied by autoPlay)
+  controls={false}         // hide the player bar
+/>
+
+<Video src="/video/hint.mp4" autoPlay width={480} />
+```
+
+Videos are produced by `npm run record` (Playwright) and converted to web-ready H.264 by ffmpeg — see [Standards](/framework/standards).
+
+## Steps
+
+Wrap an ordered list to get numbered circles with a connecting line:
+
+<Steps>
+
+1. Open **Settings**.
+
+2. Select **New API key**.
+
+3. Store the generated key in your password manager.
+
+</Steps>
+
+```jsx
+<Steps>
+
+1. Open **Settings**.
+
+2. Select **New API key**.
+
+</Steps>
+```
+
+## Expandable
+
+Collapsible sections for troubleshooting and optional detail — built on native `<details>`, so it works without JavaScript:
+
+<Expandable title="When should I use Expandable?">
+
+For content most readers skip: edge cases, long error lists, advanced options. Never hide required steps inside one.
+
+</Expandable>
+
+```jsx
+<Expandable title="When should I use Expandable?" open>
+  Body content — full Markdown works here.
+</Expandable>
+```
+
+## Badge
+
+Inline pills for plan tiers, roles, and feature states:
+
+<Badge variant="new">New</Badge> <Badge variant="beta">Beta</Badge> <Badge variant="pro">Pro plan</Badge> <Badge variant="admin">Admin</Badge> <Badge variant="info">Info</Badge>
+
+```jsx
+<Badge variant="pro">Pro plan</Badge>
+```
+
+## API components
+
+`ApiEndpoint` renders a method badge + path line for REST references:
+
+<ApiEndpoint method="GET" path="/v1/projects">Returns all projects in the workspace.</ApiEndpoint>
+<ApiEndpoint method="POST" path="/v1/projects">Creates a project.</ApiEndpoint>
+<ApiEndpoint method="DELETE" path="/v1/projects/{id}">Permanently deletes a project.</ApiEndpoint>
+
+```jsx
+<ApiEndpoint method="GET" path="/v1/projects">Returns all projects.</ApiEndpoint>
+```
+
+`Tabs` (Docusaurus built-in, globally registered) hold multi-language samples — `groupId` syncs the choice across the whole site:
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl https://api.example.com/v1/projects -H "Authorization: Bearer sk_live_…"
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+requests.get("https://api.example.com/v1/projects", headers=headers)
+```
+
+</TabItem>
+</Tabs>
+
+See the [Projects API](/developers/projects-api/) section for both in real use.
+
+## Tables
+
+Plain Markdown tables are styled globally — header fill, zebra stripes, row hover:
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| Session timeout | 30 min | Idle time before sign-out. |
+| Two-factor auth | Off | Require a second factor at sign-in. |
+| API rate limit | 60/min | Requests per key per minute. |
+
+## Keyboard keys
+
+Use `<kbd>` anywhere: press <kbd>Ctrl</kbd> + <kbd>K</kbd> to search.
+
+## Diagrams
+
+Mermaid renders from a plain code fence:
+
+```mermaid
+flowchart LR
+  A[Sign up] --> B{Invited?}
+  B -- Yes --> C[Join workspace]
+  B -- No --> D[Create workspace]
+  C --> E[Dashboard]
+  D --> E
+```
+
+## Admonitions
+
+Docusaurus callouts, themed by the global tokens:
+
+:::tip
+Prefer `:::tip` for shortcuts and best practices.
+:::
+
+:::warning
+Use `:::warning` before destructive or irreversible actions.
+:::

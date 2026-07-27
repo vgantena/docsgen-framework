@@ -1,0 +1,147 @@
+---
+sidebar_position: 5
+title: Update a project
+description: PATCH /v1/projects/{id} — rename a project, archive it, or restore it from the archive.
+---
+
+# Update a project
+
+<ApiEndpoint method="PATCH" path="/v1/projects/{id}">Renames, archives, or restores a project.</ApiEndpoint>
+
+## Overview
+
+Applies a partial update to a project. This is also the safe alternative to [deletion](/developers/projects-api/delete-project): archiving makes a project read-only while keeping all of its data, and archived projects can be restored at any time. On a status change, a `project.archived` (or `project.created`-style restore) [webhook event](/developers/webhooks) fires.
+
+<Badge variant="admin">Admin role</Badge> <Badge variant="new">All plans</Badge>
+
+## Request
+
+### Path parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Project identifier, for example `proj_8fK2m`. |
+
+### Body parameters
+
+Send only the fields you want to change:
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | No | New display name, 1–120 characters. Unique within the workspace. |
+| `status` | string | No | `archived` to archive, `active` to restore. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="json" label="JSON">
+
+The raw request payload, independent of language:
+
+```json
+{
+  "status": "archived"
+}
+```
+
+</TabItem>
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X PATCH https://api.example.com/v1/projects/proj_8fK2m \
+  -H "Authorization: Bearer sk_live_4f8a…" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "archived"}'
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpClient client = HttpClient.newHttpClient();
+String body = "{\"status\": \"archived\"}";
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/projects/proj_8fK2m"))
+    .header("Authorization", "Bearer sk_live_4f8a…")
+    .header("Content-Type", "application/json")
+    .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+    .build();
+HttpResponse<String> response =
+    client.send(request, HttpResponse.BodyHandlers.ofString());
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+response = requests.patch(
+    "https://api.example.com/v1/projects/proj_8fK2m",
+    json={"status": "archived"},
+    headers={"Authorization": "Bearer sk_live_4f8a…"},
+    timeout=30,
+)
+response.raise_for_status()
+project = response.json()
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+const response = await fetch(
+  'https://api.example.com/v1/projects/proj_8fK2m',
+  {
+    method: 'PATCH',
+    headers: {
+      Authorization: 'Bearer sk_live_4f8a…',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({status: 'archived'}),
+  },
+);
+if (!response.ok) throw new Error(`API error ${response.status}`);
+const project = await response.json();
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`200 OK` — the updated [project object](/developers/projects-api/#the-project-object):
+
+```json
+{
+  "id": "proj_8fK2m",
+  "name": "Quarterly report",
+  "status": "archived",
+  "members": 4,
+  "created_at": "2026-07-01T09:30:00Z",
+  "updated_at": "2026-07-27T08:12:41Z"
+}
+```
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `200` | — | Project updated. |
+| `400` | `validation_failed` | Empty body, unknown field, invalid `status` value, or `name` outside 1–120 characters. |
+| `401` | `unauthenticated` | Missing, malformed, or revoked API key. |
+| `403` | `insufficient_role` | Key's role is below Admin. |
+| `404` | `resource_not_found` | No project with this `id` — including deleted projects. |
+| `409` | `name_conflict` | The new `name` is already used by another project in the workspace. |
+| `422` | `project_limit_reached` | Restoring would exceed the Free plan's 3-active-projects limit. |
+| `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+
+## Business rules
+
+- Archived projects are **read-only**: task and file writes are rejected until the project is restored with `"status": "active"`.
+- Restoring counts against the Free plan's 3-active-projects limit — restore fails with `422 project_limit_reached` when the limit is already reached.
+- Archiving fires `project.archived` to all [webhook subscriptions](/developers/webhooks); renames update `updated_at` but fire no event.
+- Rename uniqueness is case-insensitive, same as [create](/developers/projects-api/create-project).
+
+## Related
+
+- [Delete a project](/developers/projects-api/delete-project) — permanent removal, when archiving isn't enough
+- [The project lifecycle](/developers/projects-api/#lifecycle) — state diagram

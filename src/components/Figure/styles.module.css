@@ -1,0 +1,94 @@
+.figure {
+  margin: 0 0 var(--ifm-leading);
+}
+
+.frameBox {
+  border: var(--doc-frame-border);
+  border-radius: var(--doc-frame-radius);
+  box-shadow: var(--doc-frame-shadow);
+  overflow: hidden;
+  background: var(--doc-color-surface);
+}
+
+.noFrame {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+
+/* Browser-chrome bar with three dots, for app screenshots. */
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--doc-frame-chrome-bg);
+  border-bottom: 1px solid var(--doc-color-border);
+}
+
+.chrome span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--doc-frame-chrome-dot);
+}
+
+.img {
+  display: block;
+  width: 100%;
+}
+
+/* The image is wrapped in a real <button> for keyboard/screen-reader access. */
+.zoomBtn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: var(--doc-frame-caption-size);
+  color: var(--doc-frame-caption-color);
+  text-align: center;
+}
+
+/* ── Lightbox ── */
+.lightbox {
+  padding: 0;
+  border: none;
+  border-radius: var(--doc-radius-md);
+  background: transparent;
+  max-width: min(92vw, 1400px);
+  max-height: 92vh;
+}
+
+.lightbox::backdrop {
+  background: rgba(10, 12, 16, 0.82);
+}
+
+.lightbox img {
+  display: block;
+  max-width: 100%;
+  max-height: 92vh;
+  border-radius: var(--doc-radius-md);
+}
+
+.closeBtn {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e293b;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}

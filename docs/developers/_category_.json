@@ -1,0 +1,9 @@
+{
+  "label": "Developers",
+  "position": 4,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "developers/index"
+  }
+}

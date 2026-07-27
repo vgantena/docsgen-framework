@@ -1,0 +1,18 @@
+{
+  // Structure linting for all docs pages: npm run lint:md
+  "config": {
+    "default": true,
+    // Long lines are fine in prose; soft-wrapping is the editor's job.
+    "MD013": false,
+    // Framework components are inline JSX/HTML by design.
+    "MD033": false,
+    // First line is frontmatter, not a heading.
+    "MD041": false,
+    // Same heading text may repeat across sibling sections (e.g. "Steps").
+    "MD024": {"siblings_only": true},
+    // Pages have a frontmatter title AND a body H1 — don't count the former.
+    "MD025": {"front_matter_title": ""}
+  },
+  "globs": ["docs/**/*.{md,mdx}", "templates/**/*.md"],
+  "ignores": ["node_modules", "build", ".docusaurus"]
+}

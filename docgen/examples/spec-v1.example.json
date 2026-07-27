@@ -1,0 +1,47 @@
+{
+  "openapi": "3.0.0",
+  "info": {"title": "Acme API", "version": "1.0.0"},
+  "paths": {
+    "/v1/projects": {
+      "get": {
+        "operationId": "listProjects",
+        "summary": "List projects",
+        "responses": {"200": {"content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/Project"}}}}}}
+      },
+      "post": {
+        "operationId": "createProject",
+        "summary": "Create a project",
+        "requestBody": {"content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateProject"}}}},
+        "responses": {"201": {"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Project"}}}}}
+      }
+    },
+    "/v1/projects/{id}": {
+      "delete": {
+        "operationId": "deleteProject",
+        "summary": "Delete a project",
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"204": {"description": "Deleted"}}
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "healthCheck",
+        "summary": "Health probe",
+        "responses": {"200": {"description": "OK"}}
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "status": {"type": "string"}}
+      },
+      "CreateProject": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {"name": {"type": "string", "maxLength": 120}}
+      }
+    }
+  }
+}

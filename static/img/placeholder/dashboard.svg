@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" font-family="system-ui, sans-serif">
+  <rect width="1280" height="800" fill="#f8fafc"/>
+  <!-- sidebar -->
+  <rect width="240" height="800" fill="#1e2128"/>
+  <rect x="24" y="28" width="140" height="20" rx="6" fill="#4f46e5"/>
+  <rect x="24" y="92" width="192" height="34" rx="8" fill="#333845"/>
+  <rect x="24" y="138" width="192" height="34" rx="8" fill="#262a33"/>
+  <rect x="24" y="184" width="192" height="34" rx="8" fill="#262a33"/>
+  <rect x="24" y="230" width="192" height="34" rx="8" fill="#262a33"/>
+  <!-- topbar -->
+  <rect x="240" width="1040" height="64" fill="#ffffff"/>
+  <rect x="240" y="63" width="1040" height="1" fill="#e2e8f0"/>
+  <rect x="272" y="22" width="220" height="20" rx="6" fill="#e2e8f0"/>
+  <circle cx="1224" cy="32" r="16" fill="#4f46e5" opacity="0.85"/>
+  <!-- stat cards -->
+  <g>
+    <rect x="272" y="96" width="304" height="128" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="296" y="120" width="120" height="14" rx="5" fill="#cbd5e1"/>
+    <rect x="296" y="150" width="80" height="26" rx="6" fill="#4f46e5"/>
+    <rect x="600" y="96" width="304" height="128" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="624" y="120" width="120" height="14" rx="5" fill="#cbd5e1"/>
+    <rect x="624" y="150" width="80" height="26" rx="6" fill="#0d9488"/>
+    <rect x="928" y="96" width="304" height="128" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="952" y="120" width="120" height="14" rx="5" fill="#cbd5e1"/>
+    <rect x="952" y="150" width="80" height="26" rx="6" fill="#b45309"/>
+  </g>
+  <!-- chart panel -->
+  <rect x="272" y="256" width="632" height="320" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="296" y="280" width="160" height="16" rx="6" fill="#cbd5e1"/>
+  <polyline points="296,520 380,470 470,490 560,420 650,440 740,380 830,340 876,360" fill="none" stroke="#4f46e5" stroke-width="3"/>
+  <!-- table panel -->
+  <rect x="928" y="256" width="304" height="320" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="952" y="280" width="140" height="16" rx="6" fill="#cbd5e1"/>
+  <g fill="#eef2f7">
+    <rect x="952" y="316" width="256" height="28" rx="6"/>
+    <rect x="952" y="356" width="256" height="28" rx="6"/>
+    <rect x="952" y="396" width="256" height="28" rx="6"/>
+    <rect x="952" y="436" width="256" height="28" rx="6"/>
+    <rect x="952" y="476" width="256" height="28" rx="6"/>
+  </g>
+  <!-- primary button -->
+  <rect x="1096" y="608" width="136" height="44" rx="10" fill="#4f46e5"/>
+  <rect x="1122" y="624" width="84" height="12" rx="5" fill="#ffffff" opacity="0.9"/>
+</svg>

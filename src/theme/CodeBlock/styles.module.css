@@ -1,0 +1,104 @@
+.wrap {
+  position: relative;
+}
+
+/* Cap block height; anything longer scrolls inside the block. */
+.wrap :global(pre) {
+  max-height: var(--doc-code-max-height);
+  overflow: auto;
+}
+
+.expandBtn {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0.35rem;
+  border: 1px solid var(--doc-color-border);
+  border-radius: var(--doc-radius-sm);
+  background: var(--doc-color-surface);
+  color: var(--doc-color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--doc-transition-fast), color var(--doc-transition-fast);
+}
+
+.expandBtn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.wrap:hover .expandBtn,
+.expandBtn:focus-visible {
+  opacity: 1;
+}
+
+/* Touch devices have no hover — keep the affordance visible so it can't
+   intercept taps invisibly. */
+@media (hover: none), (max-width: 996px) {
+  .expandBtn {
+    opacity: 0.75;
+  }
+}
+
+.expandBtn:hover {
+  color: var(--doc-color-primary);
+}
+
+/* Full-screen overlay for the expanded view. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  position: relative;
+  width: min(72rem, 100%);
+}
+
+.modal :global(pre) {
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.modal > div {
+  margin-bottom: 0;
+  box-shadow: var(--doc-shadow-lg);
+}
+
+.closeBtn {
+  position: absolute;
+  top: -2.4rem;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0.35rem;
+  border: none;
+  border-radius: var(--doc-radius-sm);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.closeBtn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
