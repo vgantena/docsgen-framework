@@ -17,18 +17,20 @@
   background: none;
 }
 
+/* Browser-chrome bar — geometry comes from the shared --doc-frame-* tokens
+   (Figure uses the same ones). */
 .chrome {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
+  gap: var(--doc-frame-chrome-gap);
+  padding: var(--doc-frame-chrome-padding);
   background: var(--doc-frame-chrome-bg);
   border-bottom: 1px solid var(--doc-color-border);
 }
 
 .chrome span {
-  width: 10px;
-  height: 10px;
+  width: var(--doc-frame-chrome-dot-size);
+  height: var(--doc-frame-chrome-dot-size);
   border-radius: 50%;
   background: var(--doc-frame-chrome-dot);
 }

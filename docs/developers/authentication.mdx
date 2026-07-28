@@ -43,6 +43,20 @@ curl https://api.example.com/v1/projects \
 ```
 
 </TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/projects"))
+    .header("Authorization", "Bearer sk_live_4f8a…")
+    .GET()
+    .build();
+HttpResponse<String> response =
+    client.send(request, HttpResponse.BodyHandlers.ofString());
+```
+
+</TabItem>
 <TabItem value="python" label="Python">
 
 ```python
@@ -74,6 +88,10 @@ const {data: projects} = await response.json();
 A `401 Unauthorized` response means the key is missing, malformed, or revoked. A `403 Forbidden` means the key is valid but its role can't access the resource.
 
 ## Rotate a key
+
+:::warning
+Revoking a key is immediate and irreversible — every integration still using it starts receiving `401 Unauthorized`. Deploy and verify the replacement key **before** you revoke the old one.
+:::
 
 <Steps>
 

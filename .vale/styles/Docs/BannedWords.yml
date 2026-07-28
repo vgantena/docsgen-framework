@@ -1,0 +1,9 @@
+extends: existence
+message: "Don't use '%s' — it's on the banned-words list in docs/framework/standards.md. If a task needs qualifying, explain the condition instead."
+level: error
+ignorecase: true
+tokens:
+  - simply
+  - just
+  - easy
+  - easily

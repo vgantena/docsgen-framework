@@ -1,4 +1,4 @@
-import React, {type ReactNode} from 'react';
+import {type ReactNode} from 'react';
 
 /**
  * Inline Lucide icons (lucide.dev, ISC license) available to <Card icon="…">.

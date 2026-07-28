@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
@@ -10,18 +10,32 @@ import {join} from 'node:path';
  * fixtures. spec-v2 + manifest.example is documented (docgen/README.md) to
  * exercise every plan action exactly once.
  */
-function runPlan(spec, manifest) {
+function runPlanRaw(spec, manifest, extraArgs = []) {
   const dir = mkdtempSync(join(tmpdir(), 'docgen-test-'));
   const out = join(dir, 'plan.json');
   const result = spawnSync(
     process.execPath,
-    ['tools/docgen-plan.mjs', '--spec', spec, '--manifest', manifest, '--write', '--out', out],
+    ['tools/docgen-plan.mjs', '--spec', spec, '--manifest', manifest, '--write', '--out', out, ...extraArgs],
     {encoding: 'utf8'},
   );
-  assert.equal(result.status, 0, `planner exited ${result.status}: ${result.stderr}`);
-  const plan = JSON.parse(readFileSync(out, 'utf8'));
+  let plan = null;
+  if (result.status === 0) plan = JSON.parse(readFileSync(out, 'utf8'));
   rmSync(dir, {recursive: true, force: true});
+  return {result, plan};
+}
+
+function runPlan(spec, manifest, extraArgs = []) {
+  const {result, plan} = runPlanRaw(spec, manifest, extraArgs);
+  assert.equal(result.status, 0, `planner exited ${result.status}: ${result.stderr}`);
   return plan;
+}
+
+/** Write a fixture JSON file into a fresh temp dir; returns [dir, path]. */
+function tmpFixture(name, value) {
+  const dir = mkdtempSync(join(tmpdir(), 'docgen-fixture-'));
+  const path = join(dir, name);
+  writeFileSync(path, JSON.stringify(value, null, 2), 'utf8');
+  return [dir, path];
 }
 
 test('first run against an empty manifest plans everything as ADD', () => {
@@ -51,4 +65,63 @@ test('an operation removed from a shared page is operation-scoped, not page dele
   const removal = [...plan.REMOVE, ...plan.REVIEW].find((r) => r.op === 'deleteProject');
   assert.ok(removal, 'deleteProject removal planned');
   assert.equal(removal.scope, 'operation', 'page with surviving ops must not be deleted');
+});
+
+test('operation tags produce resource-scoped suggested paths (<resource>-api/)', () => {
+  const [dir, spec] = tmpFixture('spec.json', {
+    openapi: '3.0.0',
+    info: {title: 'Tagged API', version: '1.0.0'},
+    paths: {
+      '/v1/widgets': {
+        get: {operationId: 'listWidgets', tags: ['Widgets'], responses: {200: {description: 'OK'}}},
+      },
+      '/v1/untagged': {
+        get: {operationId: 'untaggedOp', responses: {200: {description: 'OK'}}},
+      },
+    },
+  });
+  const {plan} = runPlan(spec, 'docgen/examples/empty-manifest.json');
+  rmSync(dir, {recursive: true, force: true});
+  const tagged = plan.ADD.find((a) => a.op === 'listWidgets');
+  const untagged = plan.ADD.find((a) => a.op === 'untaggedOp');
+  assert.equal(tagged.suggestedPage, 'docs/developers/widgets-api/list-widgets.mdx');
+  assert.equal(untagged.suggestedPage, 'docs/developers/untagged-op.mdx', 'no tag → no resource folder');
+});
+
+test('planning one source ignores pages owned by another source', () => {
+  const [dir, manifest] = tmpFixture('manifest.json', {
+    templateVersion: '1.0.0',
+    specHash: null,
+    generatedAt: null,
+    pages: {
+      'docs/guides/some-ui-page.mdx': {
+        source: 'webapp',
+        operations: ['listProjects', 'ghostOperation'],
+        operationHashes: {},
+        sourceFiles: {},
+        humanEdited: false,
+        generatedAt: null,
+      },
+    },
+  });
+  const {plan} = runPlan('docgen/examples/spec-v1.example.json', manifest);
+  rmSync(dir, {recursive: true, force: true});
+  // The webapp page must not absorb the spec's operations…
+  assert.ok(
+    plan.ADD.some((a) => a.op === 'listProjects'),
+    'listProjects planned as ADD, not matched to the other source page',
+  );
+  // …and its stale operation must not be proposed for removal/review.
+  assert.equal(plan.REMOVE.length, 0, 'no REMOVE for another source page');
+  assert.equal(plan.REVIEW.length, 0, 'no REVIEW for another source page');
+});
+
+test('--source pointing at a non-api source fails with a clear error', () => {
+  const {result} = runPlanRaw('docgen/examples/spec-v1.example.json', 'docgen/examples/empty-manifest.json', [
+    '--source',
+    'webapp',
+  ]);
+  assert.equal(result.status, 1, 'planner must exit non-zero');
+  assert.match(result.stderr, /type "ui"/);
+  assert.match(result.stderr, /type "api"/);
 });

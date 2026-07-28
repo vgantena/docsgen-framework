@@ -14,13 +14,22 @@ Webhooks push events to your endpoint the moment they happen — no polling. Con
 | --- | --- |
 | `project.created` | A project is created. |
 | `project.archived` | A project's status changes to `archived`. |
+| `project.restored` | An archived project is restored to `active`. |
 | `project.deleted` | A project is permanently deleted. |
 | `member.invited` | A workspace invitation is sent. |
 | `member.joined` | An invitation is accepted. |
 
 ## Delivery format
 
-Each delivery is an HTTPS `POST` with a JSON body:
+Each delivery is an HTTPS `POST` with a JSON body. The envelope is identical for every event — an event `id` (use it to [deduplicate](#retries)), the event `type`, a `created_at` timestamp, and a `data` object carrying the affected resource.
+
+Your endpoint must respond with a `2xx` status within 10 seconds. Anything else counts as a failed delivery and enters the [retry schedule](#retries).
+
+## Event payloads
+
+### Project events
+
+For `project.created`, `project.archived`, `project.restored`, and `project.deleted`, `data` carries the full [project object](/developers/projects-api/#the-project-object) as of the moment the event fired — for `project.deleted`, that's its final state:
 
 ```json
 {
@@ -38,15 +47,55 @@ Each delivery is an HTTPS `POST` with a JSON body:
 }
 ```
 
-`data` always carries the full [project object](/developers/projects-api/#the-project-object) as of the moment the event fired — for `project.deleted`, that's its final state.
+### Member events
 
-Your endpoint must respond with a `2xx` status within 10 seconds. Anything else counts as a failed delivery.
+For `member.invited` and `member.joined`, `data` carries the workspace member record:
+
+```json
+{
+  "id": "evt_7cJ2q",
+  "type": "member.joined",
+  "created_at": "2026-07-27T09:05:00Z",
+  "data": {
+    "id": "usr_3kP9d",
+    "email": "riley@example.com",
+    "role": "member",
+    "status": "active",
+    "invited_at": "2026-07-25T11:20:00Z",
+    "joined_at": "2026-07-27T09:05:00Z"
+  }
+}
+```
+
+For `member.invited`, `status` is `invited` and `joined_at` is `null`. Roles and the member lifecycle are explained in [Projects and workspaces](/guides/projects-and-workspaces).
 
 ## Verify signatures
 
 Every delivery is signed so you can reject forged requests. The `X-Signature` header contains an HMAC-SHA256 of the raw body, keyed with your webhook secret:
 
+Verification is a computation on the raw request body your server already received, so there is no curl equivalent — pick your server's language:
+
 <Tabs groupId="lang">
+<TabItem value="java" label="Java">
+
+```java
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+static boolean verify(String secret, byte[] rawBody, String signature) throws Exception {
+    Mac mac = Mac.getInstance("HmacSHA256");
+    mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+    String expected = HexFormat.of().formatHex(mac.doFinal(rawBody));
+    return MessageDigest.isEqual(
+        expected.getBytes(StandardCharsets.UTF_8),
+        signature.getBytes(StandardCharsets.UTF_8));
+}
+```
+
+</TabItem>
 <TabItem value="python" label="Python">
 
 ```python
@@ -79,9 +128,10 @@ Compute the HMAC over the **raw** request body, before any JSON parsing — re-s
 
 ## Retries
 
-Failed deliveries retry with exponential backoff: 1 minute, 5 minutes, 30 minutes, 2 hours, then hourly for up to 24 hours. Deliveries are at-least-once — use the event `id` to deduplicate.
+Failed deliveries retry with exponential backoff: 1 minute, 5 minutes, 30 minutes, 2 hours, then hourly for up to 24 hours. Deliveries are at-least-once — use the event `id` to deduplicate. If deliveries keep failing, work through [Troubleshoot webhook deliveries](/developers/troubleshoot-webhooks).
 
 ## Related
 
+- [Troubleshoot webhook deliveries](/developers/troubleshoot-webhooks) — signature mismatches, timeouts, replays, and non-2xx responses
 - [Developer guide](/developers/) — error format and rate limits
 - [Projects API](/developers/projects-api/) — the resources these events describe

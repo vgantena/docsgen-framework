@@ -12,7 +12,7 @@ description: DELETE /v1/projects/{id} — permanently delete a project and its c
 
 Permanently removes a project, its tasks, and its member associations. There is no undo and no recycle bin.
 
-<Badge variant="admin">Admin role</Badge> <Badge variant="new">All plans</Badge>
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
 
 :::warning
 Deletion cascades to **all tasks and files** in the project. If the data may be needed later, [archive instead](/developers/projects-api/update-project) — `PATCH /v1/projects/{id}` with `{"status": "archived"}`.
@@ -54,6 +54,8 @@ HttpResponse<Void> response =
 <TabItem value="python" label="Python">
 
 ```python
+import requests
+
 response = requests.delete(
     "https://api.example.com/v1/projects/proj_8fK2m",
     headers={"Authorization": "Bearer sk_live_4f8a…"},
@@ -89,6 +91,7 @@ if (response.status !== 204) throw new Error(`API error ${response.status}`);
 | `403` | `insufficient_role` | Key's role is below Admin. |
 | `404` | `resource_not_found` | No project with this `id` — including one already deleted. |
 | `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
 
 ## Business rules
 
@@ -97,3 +100,9 @@ if (response.status !== 204) throw new Error(`API error ${response.status}`);
 - Deleting an already-deleted project returns `404`, so a retried delete is safe to treat as success.
 - Fires `project.deleted` to all [webhook subscriptions](/developers/webhooks); the event carries the final state of the object.
 - A deleted project's name becomes available for reuse immediately.
+
+## Related
+
+- [Update a project](/developers/projects-api/update-project) — archive instead of deleting
+- [Webhooks](/developers/webhooks) — react to `project.deleted` in your systems
+- [The project lifecycle](/developers/projects-api/#lifecycle) — state diagram

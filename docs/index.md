@@ -13,7 +13,7 @@ Everything you need to get productive — step-by-step guides, concepts, and tro
   <Card title="Getting started" icon="rocket" href="/getting-started">
     Set up your account and complete your first workflow in minutes.
   </Card>
-  <Card title="Guides" icon="book-open" href="/guides/managing-projects">
+  <Card title="Guides" icon="book-open" href="/guides">
     Task-by-task instructions for everyday work.
   </Card>
   <Card title="Developers" icon="code" href="/developers/">

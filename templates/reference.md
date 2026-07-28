@@ -1,5 +1,5 @@
 ---
-title: Plural noun (e.g., "Keyboard shortcuts", "Account settings")
+title: Plural noun (for example "Keyboard shortcuts" or "Account settings")
 description: One sentence stating what this page enumerates.
 sidebar_position: 1
 ---

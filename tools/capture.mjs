@@ -8,10 +8,16 @@
  *     [--full]                      full-page screenshot
  *     [--base http://localhost:3000]  overrides appUrl from site.config.ts
  *     [--width 1280 --height 800 --scale 2]
+ *     [--timeout 30000]             navigation timeout in ms (default: Playwright's 30s)
+ *     [--wait 500]                  extra settle delay in ms after load
+ *     [--storage-state auth.json]   Playwright storageState JSON for authenticated
+ *                                   pages (create one with: npx playwright codegen
+ *                                   --save-storage=auth.json <app-url>, log in, close)
  */
 import {chromium} from 'playwright';
-import {mkdirSync, readFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readFileSync} from 'node:fs';
 import {dirname, resolve} from 'node:path';
+import {readSiteConfig} from './lib/site-config.mjs';
 
 const args = {};
 const argv = process.argv.slice(2);
@@ -28,16 +34,6 @@ for (let i = 0; i < argv.length; i++) {
   }
 }
 
-function appUrlFromConfig() {
-  try {
-    const cfg = readFileSync(resolve('site.config.ts'), 'utf8');
-    const m = cfg.match(/appUrl:\s*'([^']+)'/);
-    return m ? m[1] : 'http://localhost:3000';
-  } catch {
-    return 'http://localhost:3000';
-  }
-}
-
 // .env (gitignored) can override the target app: APP_URL=… (see .env.example).
 try {
   process.loadEnvFile?.(resolve('.env'));
@@ -46,16 +42,58 @@ try {
 }
 
 const str = (v) => (typeof v === 'string' ? v : undefined);
-const base = str(args.base) ?? process.env.APP_URL ?? appUrlFromConfig();
+
+/** Numeric flags must have numeric values — `--width` alone would otherwise become a 1px viewport. */
+function num(name, fallback) {
+  const v = args[name];
+  if (v === undefined) return fallback;
+  const n = Number(v);
+  if (typeof v !== 'string' || v.trim() === '' || Number.isNaN(n)) {
+    console.error(`--${name} needs a numeric value (got ${v === true ? 'no value' : JSON.stringify(v)}), e.g. --${name} ${fallback}`);
+    process.exit(1);
+  }
+  return n;
+}
+
+const base = str(args.base) ?? process.env.APP_URL ?? readSiteConfig({quiet: true}).appUrl;
 const urlArg = str(args.url) ?? '/';
 const url = urlArg.startsWith('http') ? urlArg : new URL(urlArg, base).href;
 const out = str(args.out);
 if (!out) {
-  console.error('Usage: npm run capture -- --url <path> --out <path.png> [--base <url>] [--highlight <sel>] [--element <sel>] [--full]');
+  console.error('Usage: npm run capture -- --url <path> --out <path.png> [--base <url>] [--highlight <sel>] [--element <sel>] [--full] [--timeout <ms>] [--wait <ms>] [--storage-state <auth.json>]');
   process.exit(1);
 }
 
-const HIGHLIGHT = '#e5484d'; // keep in sync with --doc-frame-highlight in tokens.css
+const width = num('width', 1280);
+const height = num('height', 800);
+const scale = num('scale', 2);
+const timeout = num('timeout', 30_000);
+const settle = num('wait', 0);
+
+if (str(args.element) && args.full) {
+  console.warn('⚠ Both --element and --full given — --element wins; the screenshot is only that element.');
+}
+
+const storageStatePath = str(args['storage-state']);
+if (storageStatePath && !existsSync(resolve(storageStatePath))) {
+  console.error(`--storage-state file not found: ${storageStatePath}`);
+  console.error('Create one with: npx playwright codegen --save-storage=' + storageStatePath + ' <app-url> (log in, then close the browser).');
+  process.exit(1);
+}
+
+/** Highlight color comes from the design tokens so screenshots match the site. */
+function highlightColor() {
+  const fallback = '#e5484d';
+  try {
+    const tokens = readFileSync(resolve('src/css/tokens.css'), 'utf8');
+    const m = tokens.match(/--doc-frame-highlight:\s*(#[0-9a-fA-F]{3,8}|[a-z][a-z-]*\([^)]*\))/);
+    if (m) return m[1];
+    console.warn(`⚠ --doc-frame-highlight not found in src/css/tokens.css — using fallback ${fallback}.`);
+  } catch {
+    console.warn(`⚠ Could not read src/css/tokens.css — using fallback highlight color ${fallback}.`);
+  }
+  return fallback;
+}
 
 async function launch() {
   for (const channel of ['chrome', 'msedge']) {
@@ -71,24 +109,32 @@ async function launch() {
 const browser = await launch();
 try {
   const page = await browser.newPage({
-    viewport: {width: Number(args.width ?? 1280), height: Number(args.height ?? 800)},
-    deviceScaleFactor: Number(args.scale ?? 2),
+    viewport: {width, height},
+    deviceScaleFactor: scale,
+    ...(storageStatePath ? {storageState: resolve(storageStatePath)} : {}),
   });
 
   try {
-    await page.goto(url, {waitUntil: 'networkidle'});
+    await page.goto(url, {waitUntil: 'networkidle', timeout});
   } catch (e) {
-    console.error(`Could not open ${url} — is the app running at ${base}? (${e.message.split('\n')[0]})`);
+    if (/Timeout/i.test(e.message)) {
+      console.error(`Timed out waiting for ${url} to go network-idle (${timeout}ms).`);
+      console.error('Apps with websockets or polling never reach networkidle — raise --timeout, add --wait for a fixed settle delay, or check the URL.');
+    } else {
+      console.error(`Could not open ${url} — is the app running at ${base}? (${e.message.split('\n')[0]})`);
+    }
     process.exitCode = 1;
     throw e;
   }
+
+  if (settle > 0) await page.waitForTimeout(settle);
 
   if (str(args.highlight)) {
     await page.locator(args.highlight).first().evaluate((el, color) => {
       el.style.outline = `3px solid ${color}`;
       el.style.outlineOffset = '3px';
       el.style.borderRadius = '6px';
-    }, HIGHLIGHT);
+    }, highlightColor());
     await page.waitForTimeout(150);
   }
 

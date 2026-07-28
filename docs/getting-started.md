@@ -8,6 +8,13 @@ description: Create your account, explore the dashboard, and finish your first t
 
 This guide takes you from a new account to your first completed workflow. It's also the reference example of a **task page** in this framework — copy its structure from [the task template in Writing standards](/framework/standards#page-templates).
 
+<Video
+  src="/video/getting-started/getting-started-tour.mp4"
+  poster="/video/getting-started/getting-started-tour.jpg"
+  caption="A short tour: from the help-center home through this guide."
+  frame="browser"
+/>
+
 ## Before you begin
 
 - You need an invitation email from your workspace admin.
@@ -54,4 +61,5 @@ Your password must be at least 12 characters and include one number. The button 
 
 ## Related
 
+- [Projects and workspaces](/guides/projects-and-workspaces) — the model behind what you're seeing
 - [Managing projects](/guides/managing-projects)

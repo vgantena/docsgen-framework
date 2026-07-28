@@ -6,7 +6,11 @@ description: Base URL, request conventions, versioning, rate limits, and errors 
 
 # Developer guide
 
-Integrate your systems with the product through the REST API. This section covers everything a developer needs — replace the placeholder host and limits with your product's real values.
+Integrate your systems with the product through the REST API. This section covers everything a developer needs.
+
+:::note Framework placeholder
+The host (`api.example.com`) and the rate limits below are demo values — replace them with your product's real values.
+:::
 
 ## Base URL
 

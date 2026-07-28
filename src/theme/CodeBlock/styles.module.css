@@ -53,22 +53,22 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 400;
+  z-index: var(--ifm-z-index-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--doc-scrim-bg);
   backdrop-filter: blur(3px);
 }
 
 .modal {
   position: relative;
-  width: min(72rem, 100%);
+  width: var(--doc-code-expanded-width);
 }
 
 .modal :global(pre) {
-  max-height: 80vh;
+  max-height: var(--doc-code-expanded-max-height);
   overflow: auto;
 }
 
@@ -89,8 +89,8 @@
   padding: 0.35rem;
   border: none;
   border-radius: var(--doc-radius-sm);
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background: var(--doc-modal-close-bg);
+  color: var(--doc-modal-close-fg);
   cursor: pointer;
 }
 
@@ -100,5 +100,5 @@
 }
 
 .closeBtn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--doc-modal-close-bg-hover);
 }

@@ -1,5 +1,5 @@
 ---
-title: Verb + object (e.g., "Invite team members")
+title: Verb + object (for example "Invite team members")
 description: One sentence, ≤160 chars, stating the outcome the reader achieves.
 sidebar_position: 1
 ---

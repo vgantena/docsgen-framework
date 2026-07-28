@@ -11,14 +11,16 @@ Reusable Docusaurus 3 help-center framework: user guides, per-endpoint API refer
 | `npm run serve -- --port 3300 --no-open` | Serve the production build (full search works here) |
 | `npm run typecheck` | TypeScript check |
 | `npm run lint:md` | markdownlint (structure) |
-| `npm run lint:prose` | Vale, Microsoft style + house rules (language) |
+| `npm run lint:prose` | Vale (language) — errors block (spelling, we-voice, banned house words); Microsoft-style warnings/suggestions are advisory |
+| `npm run lint:js` | ESLint over tools/ and tests/ |
 | `npm run capture -- --url <path> --out static/img/...png` | Screenshot a page (2× scale, `--highlight "#sel"`) |
 | `npm run record -- --flow tools/flows/<f>.mjs --out static/video/<name>` | Record workflow video → mp4 + auto poster JPG |
 | `npm run pdf` | Build `build/manual.pdf` from `tools/pdf-manifest.json` |
+| `npm run docgen:plan -- --spec <openapi.json>` | Incremental docs plan: ADD/UPDATE/REVIEW/REMOVE/SKIP (see `docgen/README.md`) |
 | `npm test` | Unit tests (docgen planner) |
 | `npm run brand-assets` | Regenerate social card + favicon.ico after a re-brand |
 
-**Quality gates — all five must pass before committing:** `lint:md`, `lint:prose`, `typecheck`, `test`, `build`. CI (`.github/workflows/ci.yml`) enforces the same set.
+**Quality gates — all six must pass before committing:** `lint:md`, `lint:prose`, `lint:js`, `typecheck`, `test`, `build`. CI (`.github/workflows/ci.yml`) enforces the same set.
 
 Prerequisites beyond `npm install` (one-time): pandoc, typst, vale, ffmpeg — Windows: `winget install JohnMacFarlane.Pandoc Typst.Typst errata-ai.Vale Gyan.FFmpeg`; macOS: `brew install pandoc typst vale ffmpeg`; Linux: apt for pandoc/ffmpeg, GitHub releases for vale/typst. Then `vale sync` and `npx playwright install ffmpeg`. Screenshots/videos use installed Chrome/Edge.
 
@@ -34,7 +36,7 @@ Prerequisites beyond `npm install` (one-time): pandoc, typst, vale, ffmpeg — W
 
 ## Design standards (user-established — do not regress)
 
-- Theme color is **coral** (`#e8593f` light / `#ff8a70` dark), defined only in tokens.css.
+- Theme color is **coral** — light `#cc3f22` (deliberately darker than the brand coral to keep WCAG AA contrast on white), dark `#ff8a70` — defined only in tokens.css.
 - **Lucide outline icons only. No emojis anywhere.** Cards use the name-keyed registry in `src/components/Card/icons.tsx` (tinted chip, icon + title on ONE row). Navbar icons live in `NAV_ICONS` in docusaurus.config.ts. Logo/favicon are Lucide `book-marked`, coral stroke, no background.
 - Brand wordmark: words joined, two-tone (`brand-word1`/`brand-word2` tokens), flush against the logo.
 - Navbar standard: API Doc, User Guide, Developers, Webhooks (left) + Framework (right), each with icon and a precise `activeBaseRegex` so exactly one item is active.

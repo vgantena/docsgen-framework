@@ -12,7 +12,7 @@ description: GET /v1/projects/{id} — fetch a single project by id.
 
 Fetches the current state of a single project. Use it to refresh one record instead of re-listing everything — for example after receiving a webhook event.
 
-<Badge variant="info">Member role or higher</Badge> <Badge variant="new">All plans</Badge>
+<Badge variant="info">Member role or higher</Badge> <Badge variant="info">All plans</Badge>
 
 ## Request
 
@@ -50,6 +50,8 @@ HttpResponse<String> response =
 <TabItem value="python" label="Python">
 
 ```python
+import requests
+
 response = requests.get(
     "https://api.example.com/v1/projects/proj_8fK2m",
     headers={"Authorization": "Bearer sk_live_4f8a…"},
@@ -89,6 +91,15 @@ const project = await response.json();
 }
 ```
 
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique identifier, prefixed `proj_`. Stable for the project's lifetime. |
+| `name` | string | Display name, 1–120 characters. Unique within the workspace. |
+| `status` | string | `active` or `archived`. Archived projects are read-only. |
+| `members` | integer | Count of workspace members with access. |
+| `created_at` | string | ISO 8601 creation timestamp (UTC). |
+| `updated_at` | string | ISO 8601 timestamp of the last change (UTC). |
+
 ## Status and error codes
 
 | Status | Code | When |
@@ -98,9 +109,16 @@ const project = await response.json();
 | `403` | `access_denied` | The key's user isn't a member of this project. |
 | `404` | `resource_not_found` | No project with this `id` in the workspace — including deleted projects. |
 | `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
 
 ## Business rules
 
 - A `404` is returned (not `403`) when the project belongs to a different workspace, so ids can't be probed.
 - Deleted projects are gone: retrieval returns `404`, with no tombstone record.
 - Archived projects return normally with `status: "archived"`.
+
+## Related
+
+- [List projects](/developers/projects-api/list-projects) — fetch many projects at once
+- [Update a project](/developers/projects-api/update-project) — change what this endpoint returns
+- [Webhooks](/developers/webhooks) — the events that tell you when to re-fetch

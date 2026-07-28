@@ -5,9 +5,17 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gates:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -24,12 +32,15 @@ jobs:
 
       - name: Install Vale
         run: |
-          curl -sSL https://github.com/errata-ai/vale/releases/download/v3.15.1/vale_3.15.1_Linux_64-bit.tar.gz \
+          curl -sSL --fail https://github.com/errata-ai/vale/releases/download/v3.15.1/vale_3.15.1_Linux_64-bit.tar.gz \
             | sudo tar xz -C /usr/local/bin vale
           vale sync
 
       - name: Prose lint
         run: npm run lint:prose
+
+      - name: Tooling lint (ESLint)
+        run: npm run lint:js
 
       - name: Typecheck
         run: npm run typecheck
@@ -37,8 +48,73 @@ jobs:
       - name: Unit tests (docgen planner)
         run: npm test
 
-      - name: Docgen planner smoke (deterministic plan on example spec)
-        run: npm run docgen:plan -- --spec docgen/examples/spec-v1.example.json
+      - name: Docgen planner smoke (assert expected plan)
+        run: |
+          npm run docgen:plan -- --spec docgen/examples/spec-v1.example.json \
+            --manifest docgen/examples/empty-manifest.json \
+            --write --out "$RUNNER_TEMP/plan.json"
+          node -e "
+            const p = require(process.env.RUNNER_TEMP + '/plan.json').plan;
+            const got = [p.ADD.length, p.UPDATE.length, p.REVIEW.length, p.REMOVE.length, p.SKIP.length].join(',');
+            if (got !== '4,0,0,0,0') { console.error('unexpected plan (ADD,UPDATE,REVIEW,REMOVE,SKIP): ' + got); process.exit(1); }
+            console.log('plan OK: 4 ADD, nothing else');
+          "
 
       - name: Build (includes broken-link check)
         run: npm run build
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (docgen planner)
+        run: npm test
+
+      - name: Markdown structure lint
+        run: npm run lint:md
+
+      # Vale is covered on the ubuntu job; skipped here to keep this job reliable.
+      - name: Build (includes broken-link check)
+        run: npm run build
+
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pandoc (>= 3, required for the typst engine)
+        run: |
+          curl -sSL --fail -o /tmp/pandoc.deb \
+            https://github.com/jgm/pandoc/releases/download/3.6.3/pandoc-3.6.3-1-amd64.deb
+          sudo dpkg -i /tmp/pandoc.deb
+          pandoc --version | head -1
+
+      - name: Install typst
+        run: |
+          curl -sSL --fail -o /tmp/typst.tar.xz \
+            https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz
+          tar -xJf /tmp/typst.tar.xz -C /tmp
+          sudo mv /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
+          typst --version
+
+      # build-pdf.mjs uses only the Node standard library — no npm ci needed.
+      - name: Build the PDF manual
+        run: npm run pdf

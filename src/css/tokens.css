@@ -5,6 +5,11 @@
  *  Every component (cards, tables, figures, video frames, steps, badges,
  *  navigation) consumes ONLY these variables. Change a value here and it
  *  applies everywhere. Dark theme overrides live at the bottom.
+ *
+ *  Naming: the `--doc-*` prefix DELIBERATELY shadows Docusaurus's own
+ *  `--doc-sidebar-width` (that shadowing is how our sidebar width override
+ *  works — do not rename it). When adding tokens, avoid other
+ *  Docusaurus-internal names unless shadowing them is the intent.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -69,6 +74,9 @@
 
   /* ── Code blocks ── */
   --doc-code-max-height: 22rem;      /* cap request/response samples; scroll beyond */
+  --doc-code-highlight-line-bg: color-mix(in srgb, var(--doc-color-primary) 10%, transparent);
+  --doc-code-expanded-width: min(72rem, 100%);   /* expanded (modal) code block */
+  --doc-code-expanded-max-height: 80vh;
 
   /* ── Content type scale (markdown headings) ── */
   --doc-h1-size: 2rem;
@@ -81,9 +89,21 @@
   --doc-frame-shadow: var(--doc-shadow-md);
   --doc-frame-chrome-bg: var(--doc-color-surface-2);   /* browser top bar */
   --doc-frame-chrome-dot: #cbd5e1;
+  --doc-frame-chrome-gap: 6px;         /* spacing between the three dots */
+  --doc-frame-chrome-padding: 10px 14px;
+  --doc-frame-chrome-dot-size: 10px;
   --doc-frame-caption-color: var(--doc-color-text-muted);
   --doc-frame-caption-size: 0.85rem;
-  --doc-frame-highlight: #e5484d;    /* screenshot element-highlight color */
+  /* Screenshot element-highlight color — consumed by tools/capture.mjs
+     (--highlight outline), not by any stylesheet. */
+  --doc-frame-highlight: #e5484d;
+
+  /* ── Overlays (CodeBlock expand modal + Figure lightbox share these) ── */
+  --doc-scrim-bg: rgba(15, 23, 42, 0.7);
+  --doc-modal-close-bg: rgba(255, 255, 255, 0.15);
+  --doc-modal-close-bg-hover: rgba(255, 255, 255, 0.3);
+  --doc-modal-close-fg: #ffffff;
+  --doc-lightbox-max-width: min(92vw, 1400px);   /* Figure lightbox image */
 
   /* ── Cards ── */
   --doc-card-bg: var(--doc-color-bg);
@@ -100,7 +120,7 @@
   /* ── Tables (applies to every Markdown table globally) ── */
   --doc-table-head-bg: var(--doc-color-surface);
   --doc-table-stripe-bg: rgba(148, 163, 184, 0.07);
-  --doc-table-row-hover: rgba(204, 63, 34, 0.06);
+  --doc-table-row-hover: color-mix(in srgb, var(--doc-color-primary) 6%, transparent);
   --doc-table-border: var(--doc-color-border);
   --doc-table-radius: var(--doc-radius-md);
 
@@ -153,7 +173,12 @@
 
   --doc-frame-chrome-dot: #4b5563;
   --doc-table-stripe-bg: rgba(148, 163, 184, 0.05);
-  --doc-table-row-hover: rgba(255, 138, 112, 0.09);
+  --doc-table-row-hover: color-mix(in srgb, var(--doc-color-primary) 9%, transparent);
+  --doc-code-highlight-line-bg: color-mix(in srgb, var(--doc-color-primary) 15%, transparent);
+
+  --doc-scrim-bg: rgba(0, 0, 0, 0.75);
+  --doc-modal-close-bg: rgba(255, 255, 255, 0.12);
+  --doc-modal-close-bg-hover: rgba(255, 255, 255, 0.24);
 
   /* Dark text on the light-coral marker — white-on-coral fails contrast here. */
   --doc-step-marker-color: #16181d;

@@ -20,6 +20,10 @@ docgen/plan.json
 test-results/
 playwright-report/
 
+# Raw recordings (npm run record keeps the .webm only when ffmpeg fails —
+# the committed embeds are the .mp4 + .jpg poster)
+static/video/**/*.webm
+
 # Misc
 .DS_Store
 .env

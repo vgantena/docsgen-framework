@@ -21,8 +21,8 @@
  * contract changes nothing.
  */
 import {createHash} from 'node:crypto';
-import {readFileSync, writeFileSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {dirname, resolve} from 'node:path';
 
 const args = {};
 const argv = process.argv.slice(2);
@@ -46,15 +46,37 @@ if (!strArg(args.spec) || (args.source !== undefined && !strArg(args.source))) {
   process.exit(1);
 }
 
-const config = JSON.parse(readFileSync(resolve('docgen.config.json'), 'utf8'));
-const manifest = JSON.parse(readFileSync(resolve(strArg(args.manifest) ?? 'docgen/manifest.json'), 'utf8'));
-const spec = JSON.parse(readFileSync(resolve(args.spec), 'utf8'));
+function readJson(path, what, hint) {
+  try {
+    return JSON.parse(readFileSync(resolve(path), 'utf8'));
+  } catch (e) {
+    console.error(`Could not read ${what} (${path}): ${e.code === 'ENOENT' ? 'file not found' : e.message}`);
+    console.error(`  ${hint}`);
+    process.exit(1);
+  }
+}
+
+const config = readJson('docgen.config.json', 'pipeline config', 'Run the planner from the repo root — docgen.config.json defines the sources.');
+const manifestPath = strArg(args.manifest) ?? 'docgen/manifest.json';
+const manifest = readJson(manifestPath, 'manifest', 'The provenance manifest is committed at docgen/manifest.json (see docgen/README.md); pass --manifest to use another.');
+const spec = readJson(args.spec, 'OpenAPI spec', 'Pass --spec a path to an extracted OpenAPI JSON file (YAML: convert first).');
+
+if (!manifest.pages || typeof manifest.pages !== 'object') {
+  console.error(`Manifest ${manifestPath} has no "pages" object — is it a valid provenance manifest? (see docgen/examples/empty-manifest.json)`);
+  process.exit(1);
+}
 
 const source = args.source
   ? config.sources.find((s) => s.id === args.source)
   : config.sources.find((s) => s.type === 'api');
 if (!source) {
   console.error(`No matching source in docgen.config.json${args.source ? ` for id "${args.source}"` : ''}`);
+  process.exit(1);
+}
+if (source.type !== 'api') {
+  console.error(
+    `Source "${source.id}" has type "${source.type}" — the planner diffs OpenAPI specs and only works with sources of type "api". Pick an api source with --source <id>.`,
+  );
   process.exit(1);
 }
 
@@ -138,6 +160,7 @@ function operationsOf() {
         path,
         method: method.toUpperCase(),
         summary: op.summary ?? '',
+        tags: op.tags ?? [],
         hash: hash({op, pathParams: item.parameters ?? null, refs}),
       };
     }
@@ -156,8 +179,12 @@ const kebab = (s) =>
     .replace(/^-|-$/g, '')
     .toLowerCase();
 
+// Only pages owned by the selected source take part in the plan — planning
+// source A must never propose REVIEW/REMOVE for source B's pages.
+const sourcePages = Object.entries(manifest.pages).filter(([, meta]) => meta.source === source.id);
+
 const opToPage = {};
-for (const [page, meta] of Object.entries(manifest.pages)) {
+for (const [page, meta] of sourcePages) {
   for (const opId of meta.operations ?? []) opToPage[opId] = page;
 }
 
@@ -172,8 +199,8 @@ const suggestPage = (opId, op) => {
   let candidate = `${source.output}/${tag}${kebab(opId)}.mdx`;
   let n = 2;
   while (suggested.has(candidate)) {
-    warnings.push(`suggested page collision for "${opId}" — using ${candidate.replace(/\.mdx$/, `-${n}.mdx`)}`);
     candidate = candidate.replace(/(-\d+)?\.mdx$/, `-${n}.mdx`);
+    warnings.push(`suggested page collision for "${opId}" — using ${candidate}`);
     n++;
   }
   suggested.add(candidate);
@@ -199,9 +226,21 @@ for (const [opId, op] of Object.entries(specOps)) {
   } else if (oldHash === op.hash) {
     plan.SKIP.push(entry);
   } else if (meta.humanEdited) {
-    plan.REVIEW.push({...entry, reason: 'contract changed but page is human-edited'});
+    plan.REVIEW.push({
+      ...entry,
+      reason:
+        oldHash === undefined
+          ? 'no baseline hash recorded for this operation; review the page against the spec'
+          : 'contract changed but page is human-edited',
+    });
   } else {
-    plan.UPDATE.push({...entry, reason: 'contract changed'});
+    plan.UPDATE.push({
+      ...entry,
+      reason:
+        oldHash === undefined
+          ? 'no baseline hash recorded for this operation — regenerate from the spec'
+          : 'contract changed',
+    });
   }
 }
 
@@ -230,7 +269,7 @@ for (const [opId, page] of Object.entries(opToPage)) {
 
 /* ── Report ─────────────────────────────────────────────────────────── */
 
-const total = Object.values(plan).reduce((n, list) => n + list.length, 0);
+const total = Object.keys(specOps).length;
 console.log(`Docgen change plan — source "${source.id}", spec ${args.spec}`);
 console.log(
   `templateVersion: manifest ${manifest.templateVersion} vs config ${config.templateVersion}${templateStale ? '  ⚠ STALE (full regeneration)' : ''}`,
@@ -253,7 +292,7 @@ for (const [action, list] of Object.entries(plan)) {
   console.log('');
 }
 console.log(
-  `${total} operations: ${plan.SKIP.length} untouched, ${plan.ADD.length} new, ${plan.UPDATE.length} to regenerate, ${plan.REVIEW.length} need human review, ${plan.REMOVE.length} to remove.`,
+  `${total} operations in spec: ${plan.SKIP.length} untouched, ${plan.ADD.length} new, ${plan.UPDATE.length} to regenerate, ${plan.REVIEW.length} need human review, ${plan.REMOVE.length} to remove.`,
 );
 
 if (args.write) {
@@ -266,6 +305,7 @@ if (args.write) {
     warnings,
     plan,
   };
+  mkdirSync(dirname(resolve(outPath)), {recursive: true});
   writeFileSync(resolve(outPath), JSON.stringify(out, null, 2) + '\n', 'utf8');
   console.log(`\nWrote ${outPath}`);
 }

@@ -25,6 +25,22 @@ export interface FooterLink {
   href?: string;
 }
 
+/** Organization that owns the product — shared const so nothing duplicates the URL. */
+const org = {
+  name: 'Your Company',
+  url: 'https://example.com',
+};
+
+/**
+ * Git repository of THIS docs site. `url` powers the footer "GitHub" link
+ * (omitted while ''); set editBase to enable "Edit this page" links,
+ * e.g. 'https://github.com/org/repo/edit/main/'. Leave '' to disable.
+ */
+const repo = {
+  url: '',
+  editBase: '',
+};
+
 const site = {
   /** Product being documented. */
   product: {
@@ -32,16 +48,14 @@ const site = {
     tagline: 'Help center & user guides',
     /** Shown in the navbar next to the product name. */
     logo: 'img/logo.svg',
+    /** Dark-theme variant of the logo (lighter stroke for dark backgrounds). */
+    logoDark: 'img/logo-dark.svg',
     favicon: 'img/favicon.svg',
     /** 1200×630 social-share card. Regenerate after re-branding: npm run brand-assets */
     socialCard: 'img/social-card.png',
   },
 
-  /** Organization that owns the product. */
-  org: {
-    name: 'Your Company',
-    url: 'https://example.com',
-  },
+  org,
 
   /** Where this docs site is deployed. */
   deploy: {
@@ -55,14 +69,7 @@ const site = {
    */
   appUrl: 'http://localhost:3000',
 
-  /**
-   * Git repository of THIS docs site. Set editBase to enable "Edit this page"
-   * links, e.g. 'https://github.com/org/repo/edit/main/'. Leave '' to disable.
-   */
-  repo: {
-    url: '',
-    editBase: '',
-  },
+  repo,
 
   /** Site-wide announcement bar. Set to null to hide. */
   announcement: null as null | {id: string; content: string},
@@ -72,37 +79,43 @@ const site = {
     items: [
       {
         label: 'API Doc',
+        // Link points at the primary API resource; the regex matches ANY
+        // /developers/<resource>-api section so future resources light it up.
         to: '/developers/projects-api/',
         position: 'left',
-        activeBaseRegex: '^/developers/projects-api',
+        activeBaseRegex: '^/developers/[^/]+-api(/|$)',
         icon: 'braces',
       },
       {
         label: 'User Guide',
         to: '/',
         position: 'left',
-        activeBaseRegex: '^/(?!framework|developers)',
+        // Catch-all for guide pages: everything except the other sections and
+        // non-doc routes (/search, generated /category/ indexes) — those must
+        // activate nothing / their own item.
+        activeBaseRegex: '^/(?!framework(/|$)|developers(/|$)|search(/|$)|category/)',
         icon: 'book-open',
       },
       {
         label: 'Developers',
         to: '/developers/',
         position: 'left',
-        activeBaseRegex: '^/developers(?!/projects-api|/webhooks)',
+        // Excludes every <resource>-api section (API Doc item) and webhooks.
+        activeBaseRegex: '^/developers(?!/[^/]+-api(/|$)|/webhooks(/|$))',
         icon: 'terminal',
       },
       {
         label: 'Webhooks',
         to: '/developers/webhooks',
         position: 'left',
-        activeBaseRegex: '^/developers/webhooks',
+        activeBaseRegex: '^/developers/webhooks(/|$)',
         icon: 'webhook',
       },
       {
         label: 'Framework',
-        to: '/framework/components',
+        to: '/framework',
         position: 'right',
-        activeBaseRegex: '^/framework',
+        activeBaseRegex: '^/framework(/|$)',
         icon: 'layers',
       },
     ] as NavItem[],
@@ -113,7 +126,9 @@ const site = {
     links: [
       {label: 'Getting started', to: '/getting-started'},
       {label: 'Component library', to: '/framework/components'},
-      {label: 'Website', href: 'https://example.com'},
+      {label: 'Website', href: org.url},
+      // Repo link appears automatically once repo.url is set.
+      ...(repo.url ? [{label: 'GitHub', href: repo.url}] : []),
     ] as FooterLink[],
   },
 

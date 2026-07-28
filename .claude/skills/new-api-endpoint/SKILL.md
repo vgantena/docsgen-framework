@@ -18,9 +18,9 @@ One endpoint = one page under `docs/developers/<resource>-api/`. Never append en
    - Business rules: constraints the schema can't express — role/plan gates, uniqueness, limits, idempotency, webhook side effects, retention.
 3. Add the endpoint row to the resource's `index.mdx` endpoints table. If the resource is new, create the folder with a `_category_.json` (`link: {type: doc, id: .../index}`) and an index page modeled on `docs/developers/projects-api/index.mdx` (object schema, lifecycle diagram, roles/plans table).
 4. New technical terms → `.vale/styles/config/vocabularies/Docs/accept.txt` (one regex per line, e.g. `[Ii]dempotency`).
-5. Run all four gates: `npm run lint:md`, `npm run lint:prose`, `npm run typecheck`, `npm run build` (build catches broken links).
+5. Run all six gates: `npm run lint:md`, `npm run lint:prose`, `npm run lint:js`, `npm run typecheck`, `npm test`, `npm run build` (build catches broken links).
 
 ## Style traps that fail Vale
 
-- "e.g." → "for example"; "it is" → "it's"; never "we"; no "simply/just/easy".
+- "e.g." → "for example"; "it is" → "it's"; never "we" (Vale error); no "simply/just/easy" (Vale error via the house banned-words rule).
 - Spaced em-dashes ( — ) are fine (house style).

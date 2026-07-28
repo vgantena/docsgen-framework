@@ -21,7 +21,8 @@
     "test": "node --test \"tests/*.test.mjs\"",
     "brand-assets": "node tools/make-brand-assets.mjs",
     "lint:md": "markdownlint-cli2",
-    "lint:prose": "vale docs"
+    "lint:prose": "vale docs templates",
+    "lint:js": "eslint tools tests eslint.config.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
@@ -39,8 +40,11 @@
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
+    "@eslint/js": "^9.39.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.5",
+    "globals": "^17.8.0",
     "markdownlint-cli2": "^0.23.1",
     "playwright": "^1.62.0",
     "typescript": "~6.0.2"
@@ -58,6 +62,6 @@
     ]
   },
   "engines": {
-    "node": ">=20.0"
+    "node": ">=22.0"
   }
 }

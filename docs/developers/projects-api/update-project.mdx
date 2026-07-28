@@ -10,9 +10,9 @@ description: PATCH /v1/projects/{id} — rename a project, archive it, or restor
 
 ## Overview
 
-Applies a partial update to a project. This is also the safe alternative to [deletion](/developers/projects-api/delete-project): archiving makes a project read-only while keeping all of its data, and archived projects can be restored at any time. On a status change, a `project.archived` (or `project.created`-style restore) [webhook event](/developers/webhooks) fires.
+Applies a partial update to a project. This is also the safe alternative to [deletion](/developers/projects-api/delete-project): archiving makes a project read-only while keeping all of its data, and archived projects can be restored at any time. On a status change, a [webhook event](/developers/webhooks) fires: `project.archived` on archive, `project.restored` on restore.
 
-<Badge variant="admin">Admin role</Badge> <Badge variant="new">All plans</Badge>
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
 
 ## Request
 
@@ -30,6 +30,12 @@ Send only the fields you want to change:
 | --- | --- | --- | --- |
 | `name` | string | No | New display name, 1–120 characters. Unique within the workspace. |
 | `status` | string | No | `archived` to archive, `active` to restore. |
+
+### Headers
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
 
 ### Sample request
 
@@ -74,6 +80,8 @@ HttpResponse<String> response =
 <TabItem value="python" label="Python">
 
 ```python
+import requests
+
 response = requests.patch(
     "https://api.example.com/v1/projects/proj_8fK2m",
     json={"status": "archived"},
@@ -121,6 +129,15 @@ const project = await response.json();
 }
 ```
 
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique identifier, prefixed `proj_`. Stable for the project's lifetime. |
+| `name` | string | Display name, 1–120 characters. Unique within the workspace. |
+| `status` | string | `active` or `archived`. Archived projects are read-only. |
+| `members` | integer | Count of workspace members with access. |
+| `created_at` | string | ISO 8601 creation timestamp (UTC). |
+| `updated_at` | string | ISO 8601 timestamp of the last change (UTC) — set to the moment of this update. |
+
 ## Status and error codes
 
 | Status | Code | When |
@@ -133,12 +150,13 @@ const project = await response.json();
 | `409` | `name_conflict` | The new `name` is already used by another project in the workspace. |
 | `422` | `project_limit_reached` | Restoring would exceed the Free plan's 3-active-projects limit. |
 | `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
 
 ## Business rules
 
 - Archived projects are **read-only**: task and file writes are rejected until the project is restored with `"status": "active"`.
 - Restoring counts against the Free plan's 3-active-projects limit — restore fails with `422 project_limit_reached` when the limit is already reached.
-- Archiving fires `project.archived` to all [webhook subscriptions](/developers/webhooks); renames update `updated_at` but fire no event.
+- Archiving fires `project.archived` and restoring fires `project.restored` to all [webhook subscriptions](/developers/webhooks); renames update `updated_at` but fire no event.
 - Rename uniqueness is case-insensitive, same as [create](/developers/projects-api/create-project).
 
 ## Related

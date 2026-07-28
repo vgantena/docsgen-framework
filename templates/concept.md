@@ -1,5 +1,5 @@
 ---
-title: Noun (e.g., "Workspaces")
+title: Noun (for example "Workspaces")
 description: One sentence defining the concept and why it matters.
 sidebar_position: 1
 ---

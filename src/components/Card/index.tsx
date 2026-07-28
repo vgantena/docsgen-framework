@@ -1,5 +1,6 @@
-import React, {type CSSProperties, type ReactNode} from 'react';
+import {type CSSProperties, type ReactNode} from 'react';
 import Link from '@docusaurus/Link';
+import clsx from 'clsx';
 import {CARD_ICONS} from './icons';
 import styles from './styles.module.css';
 
@@ -14,7 +15,16 @@ export interface CardProps {
 
 function IconChip({name}: {name: string}): ReactNode {
   const glyph = CARD_ICONS[name];
-  if (!glyph) return null;
+  if (!glyph) {
+    if (process.env.NODE_ENV !== 'production') {
+      // MDX usage isn't typechecked — surface typos instead of failing silent.
+      console.warn(
+        `[Card] Unknown icon "${name}". Valid names: ${Object.keys(CARD_ICONS).join(', ')}. ` +
+          'Add new icons to src/components/Card/icons.tsx.',
+      );
+    }
+    return null;
+  }
   return (
     <span className={styles.iconChip} aria-hidden="true">
       <svg
@@ -44,10 +54,21 @@ export function Card({title, href, icon, children}: CardProps): ReactNode {
 
   if (href) {
     return (
-      <Link to={href} className={`${styles.card} ${styles.clickable}`}>
+      <Link to={href} className={clsx(styles.card, styles.clickable)}>
         {body}
         <span className={styles.arrow} aria-hidden="true">
-          →
+          {/* Lucide "arrow-right" — keeps the outline icon style, no text glyphs. */}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
         </span>
       </Link>
     );

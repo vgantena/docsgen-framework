@@ -17,19 +17,20 @@
   background: none;
 }
 
-/* Browser-chrome bar with three dots, for app screenshots. */
+/* Browser-chrome bar with three dots, for app screenshots.
+   Geometry comes from the shared --doc-frame-* tokens (Video uses them too). */
 .chrome {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
+  gap: var(--doc-frame-chrome-gap);
+  padding: var(--doc-frame-chrome-padding);
   background: var(--doc-frame-chrome-bg);
   border-bottom: 1px solid var(--doc-color-border);
 }
 
 .chrome span {
-  width: 10px;
-  height: 10px;
+  width: var(--doc-frame-chrome-dot-size);
+  height: var(--doc-frame-chrome-dot-size);
   border-radius: 50%;
   background: var(--doc-frame-chrome-dot);
 }
@@ -63,12 +64,12 @@
   border: none;
   border-radius: var(--doc-radius-md);
   background: transparent;
-  max-width: min(92vw, 1400px);
+  max-width: var(--doc-lightbox-max-width);
   max-height: 92vh;
 }
 
 .lightbox::backdrop {
-  background: rgba(10, 12, 16, 0.82);
+  background: var(--doc-scrim-bg);
 }
 
 .lightbox img {
@@ -82,13 +83,25 @@
   position: fixed;
   top: 0.75rem;
   right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
+  padding: 0.5rem;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: #1e293b;
-  font-size: 1rem;
+  background: var(--doc-modal-close-bg);
+  color: var(--doc-modal-close-fg);
   cursor: pointer;
   line-height: 1;
+}
+
+.closeBtn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.closeBtn:hover {
+  background: var(--doc-modal-close-bg-hover);
 }

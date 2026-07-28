@@ -10,16 +10,18 @@
  *
  * The flow file exports `default async (page, {baseUrl}) => { … }` and drives
  * the product like a user would (flows can read process.env.DEMO_USER/DEMO_PASS
- * from .env). Output: <out>.mp4 + <out>.jpg poster (plus .webm if ffmpeg is
- * unavailable). Flows that tour the DOCS SITE itself need --base pointing at
- * the running docs server, e.g. --base http://localhost:3300.
+ * from .env). Output: <out>.mp4 + <out>.jpg poster — ffmpeg is required; if it
+ * is missing the run fails (the raw .webm is kept, gitignored, for a rerun).
+ * Flows that tour the DOCS SITE itself need --base pointing at the running
+ * docs server, e.g. --base http://localhost:3300.
  */
 import {chromium} from 'playwright';
-import {spawnSync} from 'node:child_process';
-import {copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {copyFileSync, mkdirSync, mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {readSiteConfig} from './lib/site-config.mjs';
+import {run} from './lib/spawn.mjs';
 
 const args = {};
 const argv = process.argv.slice(2);
@@ -49,17 +51,7 @@ if (!str(args.flow) || !str(args.out)) {
   process.exit(1);
 }
 
-function appUrlFromConfig() {
-  try {
-    const cfg = readFileSync(resolve('site.config.ts'), 'utf8');
-    const m = cfg.match(/appUrl:\s*'([^']+)'/);
-    return m ? m[1] : 'http://localhost:3000';
-  } catch {
-    return 'http://localhost:3000';
-  }
-}
-
-const baseUrl = str(args.base) ?? process.env.APP_URL ?? appUrlFromConfig();
+const baseUrl = str(args.base) ?? process.env.APP_URL ?? readSiteConfig({quiet: true}).appUrl;
 const size = {width: Number(args.width ?? 1280), height: Number(args.height ?? 800)};
 const outBase = args.out.replace(/\.(mp4|webm)$/i, '');
 const videoDir = mkdtempSync(join(tmpdir(), 'docs-record-'));
@@ -109,7 +101,7 @@ if (!webmTmp) {
 
 mkdirSync(dirname(resolve(`${outBase}.mp4`)), {recursive: true});
 
-const ffmpeg = spawnSync(
+const ffmpeg = run(
   'ffmpeg',
   ['-y', '-i', webmTmp, '-c:v', 'libx264', '-crf', '23', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', `${outBase}.mp4`],
   {stdio: 'inherit'},
@@ -117,14 +109,18 @@ const ffmpeg = spawnSync(
 
 if (ffmpeg.error || ffmpeg.status !== 0) {
   copyFileSync(webmTmp, `${outBase}.webm`);
-  console.log(`ffmpeg unavailable — kept ${outBase}.webm. Convert later with:`);
-  console.log(`  ffmpeg -i ${outBase}.webm -c:v libx264 -crf 23 -pix_fmt yuv420p -movflags +faststart ${outBase}.mp4`);
+  console.error(`ffmpeg failed or is not installed — every documented embed needs ${outBase}.mp4 + ${outBase}.jpg poster.`);
+  console.error('Install it:  Windows: winget install Gyan.FFmpeg   macOS: brew install ffmpeg   Linux: apt install ffmpeg');
+  console.error('(New shell after winget install? Refresh PATH first — see "Environment notes" in CLAUDE.md.)');
+  console.error(`The raw recording was kept at ${outBase}.webm (gitignored); rerun this command once ffmpeg works.`);
+  rmSync(videoDir, {recursive: true, force: true});
+  process.exit(1);
 } else {
   console.log(`Saved ${outBase}.mp4`);
   // Poster frame for <Video poster="…">: grab a frame past the initial paint
   // so the paused player never shows a blank white frame.
   const posterAt = str(args.poster) ?? '1.5';
-  const poster = spawnSync(
+  const poster = run(
     'ffmpeg',
     ['-y', '-ss', String(posterAt), '-i', `${outBase}.mp4`, '-frames:v', '1', '-q:v', '3', `${outBase}.jpg`],
     {stdio: 'ignore'},

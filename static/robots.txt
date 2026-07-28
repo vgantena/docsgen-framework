@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 
-# Update the host after branding (see site.config.ts deploy.url).
+# The Sitemap host is rewritten by `npm run brand-assets` from
+# site.config.ts deploy.url (left as-is while deploy.url is the placeholder).
 Sitemap: https://docs.example.com/sitemap.xml

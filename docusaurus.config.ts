@@ -9,11 +9,22 @@ const NAV_SVG = (paths: string) =>
   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
 /** activeBaseRegex values in site.config.ts are written for baseUrl '/'.
- * Docusaurus matches them against the FULL pathname, so prefix the real baseUrl. */
+ * Docusaurus matches them against the FULL pathname, so prefix the real baseUrl.
+ * Accepts anchored ('^/foo') and unanchored ('/foo') input; always emits an
+ * anchored regex so items can't accidentally match mid-path. */
 const withBaseUrl = (regex: string) => {
   const base = site.deploy.baseUrl.replace(/\/$/, '');
-  return base ? `^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${regex.slice(1)}` : regex;
+  const body = regex.startsWith('^') ? regex.slice(1) : regex;
+  return `^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${body}`;
 };
+
+/** Escape a string for safe interpolation into an HTML attribute/text node. */
+const escapeHtml = (s: string) =>
+  s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
 if (process.argv.includes('build') && site.deploy.url.includes('example.com')) {
   console.warn(
@@ -58,7 +69,10 @@ const config: Config = {
   url: site.deploy.url,
   baseUrl: site.deploy.baseUrl,
 
+  // `npm run build` is the documented broken-link check — fail hard on all three
+  // (broken markdown links throw via markdown.hooks below).
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
 
   i18n: {
     defaultLocale: 'en',
@@ -67,6 +81,10 @@ const config: Config = {
 
   markdown: {
     mermaid: true,
+    format: 'mdx', // explicit: several .md pages use JSX components and rely on MDX parsing
+    hooks: {
+      onBrokenMarkdownLinks: 'throw',
+    },
   },
 
   themes: [
@@ -122,23 +140,26 @@ const config: Config = {
       logo: {
         alt: `${site.product.name} logo`,
         src: site.product.logo,
+        srcDark: site.product.logoDark,
       },
       items: [
         {
           type: 'html' as const,
           position: 'left' as const,
           value: (() => {
+            // Two-tone wordmark: split on the FIRST space — word 1 gets
+            // brand-word1, everything after it (words 2+) gets brand-word2.
             const [first, ...rest] = site.product.name.split(' ');
             const restHtml = rest.length
-              ? `<span class="brand-word2">${rest.join(' ')}</span>`
+              ? `<span class="brand-word2">${escapeHtml(rest.join(' '))}</span>`
               : '';
-            return `<a href="${site.deploy.baseUrl}" class="brand-wordmark" aria-label="${site.product.name} home"><span class="brand-word1">${first}</span>${restHtml}</a>`;
+            return `<a href="${site.deploy.baseUrl}" class="brand-wordmark" aria-label="${escapeHtml(site.product.name)} home"><span class="brand-word1">${escapeHtml(first)}</span>${restHtml}</a>`;
           })(),
         },
         ...site.navbar.items.map((item) => ({
           position: item.position ?? 'left',
           ...(item.icon && NAV_ICONS[item.icon]
-            ? {html: `${NAV_ICONS[item.icon]}<span>${item.label}</span>`}
+            ? {html: `${NAV_ICONS[item.icon]}<span>${escapeHtml(item.label)}</span>`}
             : {label: item.label}),
           ...(item.to ? {to: item.to} : {}),
           ...(item.href ? {href: item.href} : {}),

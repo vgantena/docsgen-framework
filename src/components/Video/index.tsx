@@ -1,4 +1,4 @@
-import React, {type CSSProperties, type ReactNode, useCallback} from 'react';
+import {useCallback, useId, type CSSProperties, type ReactNode} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import clsx from 'clsx';
 import styles from './styles.module.css';
@@ -9,14 +9,19 @@ export interface VideoProps {
   /** Poster image shown before play, e.g. "/video/projects/create-project.jpg". */
   poster?: string;
   caption?: ReactNode;
+  /** WebVTT captions file under static/, e.g. "/video/projects/create-project.vtt". */
+  captions?: string;
+  /** Accessible name for the video (aria-label), e.g. "Creating a project". */
+  label?: string;
   /** 'plain' = simple frame, 'browser' = browser-chrome frame, 'none' = raw. */
   frame?: 'plain' | 'browser' | 'none';
-  /** GIF-style silent loop: autoplays muted, hides controls. */
+  /** Autoplay muted (GIF-style silent loop). Controls stay visible so the loop
+   *  can be paused (WCAG 2.2.2) — pass controls={false} to hide them explicitly. */
   autoPlay?: boolean;
   loop?: boolean;
   /** Start muted (implied by autoPlay). */
   muted?: boolean;
-  /** Show player controls. Default: true, unless autoPlay. */
+  /** Show player controls. Default: true (even with autoPlay). */
   controls?: boolean;
   /** Skip intro: start playback at this many seconds in. */
   startAt?: number;
@@ -29,6 +34,8 @@ export default function Video({
   src,
   poster,
   caption,
+  captions,
+  label,
   frame = 'plain',
   autoPlay = false,
   loop,
@@ -40,6 +47,8 @@ export default function Video({
 }: VideoProps): ReactNode {
   const url = useBaseUrl(src);
   const posterUrl = useBaseUrl(poster ?? '');
+  const captionsUrl = useBaseUrl(captions ?? '');
+  const captionId = useId();
   const style: CSSProperties | undefined = width ? {maxWidth: width} : undefined;
 
   const setupVideo = useCallback(
@@ -77,20 +86,30 @@ export default function Video({
             <span />
           </div>
         )}
+        {/* Controls default to visible even for autoplaying loops so motion can
+            always be paused (WCAG 2.2.2). Autoplay stays muted + playsInline. */}
         <video
           ref={setupVideo}
           className={styles.video}
           src={startAt ? `${url}#t=${startAt}` : url}
           poster={poster ? posterUrl : undefined}
-          controls={controls ?? !autoPlay}
+          controls={controls ?? true}
           autoPlay={autoPlay}
           muted={muted ?? autoPlay}
           loop={loop ?? autoPlay}
           playsInline
           preload="metadata"
-        />
+          aria-label={label}
+          aria-describedby={caption ? captionId : undefined}
+        >
+          {captions && <track kind="captions" src={captionsUrl} srcLang="en" label="Captions" default />}
+        </video>
       </div>
-      {caption && <figcaption className={styles.caption}>{caption}</figcaption>}
+      {caption && (
+        <figcaption id={captionId} className={styles.caption}>
+          {caption}
+        </figcaption>
+      )}
     </figure>
   );
 }

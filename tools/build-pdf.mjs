@@ -5,16 +5,42 @@
  *
  *   npm run pdf
  *
- * Chapters and metadata come from tools/pdf-manifest.json. Framework
- * components degrade for print: Figure → image, Video → link line,
- * Expandable → bold heading, admonitions → labeled paragraphs,
- * Mermaid fences → omitted note.
+ * Chapters come from tools/pdf-manifest.json; title/author default to the
+ * product/org names in site.config.ts (manifest "title"/"author" fields are
+ * optional overrides). Framework components degrade for print: Figure →
+ * image, Video → link line, Expandable → bold heading, admonitions →
+ * labeled paragraphs, Mermaid fences → omitted note, Cards → bullets,
+ * internal links → plain text.
  */
-import {spawnSync} from 'node:child_process';
-import {mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {dirname, resolve} from 'node:path';
+import {readSiteConfig} from './lib/site-config.mjs';
+import {run} from './lib/spawn.mjs';
 
 const manifest = JSON.parse(readFileSync(resolve('tools/pdf-manifest.json'), 'utf8'));
+const site = readSiteConfig();
+
+/* ── Preflight: pandoc >= 3 (typst engine), all chapters present ────── */
+
+const versionProbe = run('pandoc', ['--version'], {encoding: 'utf8'});
+if (versionProbe.error || versionProbe.status !== 0) {
+  console.error('pandoc not found on PATH — install it (winget install JohnMacFarlane.Pandoc / brew install pandoc) and retry.');
+  process.exit(1);
+}
+const pandocVersion = versionProbe.stdout.match(/^pandoc(?:\.exe)?\s+(\d+)\.(\d+)/)?.slice(1).map(Number);
+if (!pandocVersion || pandocVersion[0] < 3) {
+  console.error(`pandoc >= 3.0 is required for the typst PDF engine — found ${pandocVersion ? pandocVersion.join('.') : 'an unrecognized version'}.`);
+  console.error('Upgrade: winget upgrade JohnMacFarlane.Pandoc / brew upgrade pandoc.');
+  process.exit(1);
+}
+
+const missing = manifest.chapters.filter((file) => !existsSync(resolve(file)));
+if (missing.length) {
+  console.error('tools/pdf-manifest.json lists chapters that do not exist (renamed or removed?):');
+  for (const file of missing) console.error(`  - ${file}`);
+  console.error('Fix the stale entries in tools/pdf-manifest.json.');
+  process.exit(1);
+}
 
 /** Component degradations for print — applied ONLY to prose (never inside code fences). */
 function transformProse(md) {
@@ -62,6 +88,17 @@ function transformProse(md) {
 
   // <kbd>X</kbd> → `X`
   md = md.replace(/<kbd>([\s\S]*?)<\/kbd>/g, '`$1`');
+
+  // MDX-isms that would print literally: comments and top-level import/export.
+  md = md.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+  md = md.replace(/^(import|export)\s.*$/gm, '');
+
+  // Root-relative image paths → the static/ filesystem path pandoc can read.
+  md = md.replace(/(!\[[^\]]*\]\()\/(?=[^)\s])/g, '$1static/');
+
+  // Internal root-relative links (incl. anchors) would be dead in a PDF —
+  // keep just the link text. External http(s) links stay links.
+  md = md.replace(/(?<!!)\[([^\]]+)\]\(\/[^)]*\)/g, '$1');
 
   // Admonitions → labeled paragraphs.
   md = md.replace(/^:::(tip|note|info|warning|danger|caution)(?:\[[^\]]*\])?\s*$/gm, (_, kind) => {
@@ -111,7 +148,11 @@ function transform(markdown) {
       fence = {marker: open[2], lang: open[3].trim(), lines: [line]};
     } else if (fence) {
       fence.lines.push(line);
-      if (line.trim().startsWith(fence.marker)) {
+      // CommonMark closing fence: same character, length >= the opening
+      // fence, nothing but whitespace after it — a longer inner fence
+      // (e.g. ```` inside ```) must NOT terminate the block early.
+      const close = line.match(/^[ \t]*(`{3,}|~{3,})[ \t]*$/);
+      if (close && close[1][0] === fence.marker[0] && close[1].length >= fence.marker.length) {
         if (fence.lang.startsWith('mermaid')) {
           out.push('*(Diagram available in the online help center.)*');
         } else {
@@ -130,7 +171,8 @@ function transform(markdown) {
 }
 
 const chapters = manifest.chapters.map((file) => transform(readFileSync(resolve(file), 'utf8')));
-const combined = chapters.join('\n\n');
+// Raw typst page break between chapters (needs -f gfm+raw_attribute).
+const combined = chapters.join('\n\n```{=typst}\n#pagebreak()\n```\n\n');
 
 const output = resolve(manifest.output ?? 'build/manual.pdf');
 mkdirSync(dirname(output), {recursive: true});
@@ -138,19 +180,23 @@ mkdirSync(dirname(output), {recursive: true});
 const tmpMd = resolve('.docusaurus-pdf-input.md');
 writeFileSync(tmpMd, combined, 'utf8');
 
+// Branding comes from site.config.ts; manifest fields are optional overrides.
+const title = manifest.title ?? `${site.product.name} User Manual`;
+const author = manifest.author ?? site.org.name;
+
 const pandocArgs = [
   tmpMd,
-  '-f', 'gfm',
+  '-f', 'gfm+raw_attribute',
   '-o', output,
   '--pdf-engine=typst',
   '--toc',
   '--toc-depth=2',
-  '--metadata', `title=${manifest.title ?? 'User Manual'}`,
+  '--metadata', `title=${title}`,
+  '--metadata', `author=${author}`,
 ];
-if (manifest.author) pandocArgs.push('--metadata', `author=${manifest.author}`);
 if (manifest.date) pandocArgs.push('--metadata', `date=${manifest.date}`);
 
-const result = spawnSync('pandoc', pandocArgs, {stdio: 'inherit', cwd: process.cwd()});
+const result = run('pandoc', pandocArgs, {stdio: 'inherit', cwd: process.cwd()});
 rmSync(tmpMd, {force: true});
 
 if (result.error || result.status !== 0) {

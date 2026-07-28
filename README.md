@@ -48,14 +48,15 @@ npm run serve     # serve the production build locally
 | `npm run capture -- --url /settings --out static/img/settings/api-keys.png` | Screenshot a page (2× scale, optional `--highlight "#selector"`) |
 | `npm run record -- --flow tools/flows/example-flow.mjs --out static/video/example` | Record a short workflow video (webm → web-ready mp4) |
 | `npm run lint:md` | Structure linting (markdownlint) |
-| `npm run lint:prose` | Language linting (Vale, Microsoft style + house rules) |
+| `npm run lint:prose` | Language linting (Vale) — errors block; Microsoft-style warnings are advisory |
+| `npm run lint:js` | ESLint over tools/ and tests/ |
 | `npm run pdf` | Build the printable manual (`tools/pdf-manifest.json` → `build/manual.pdf`) |
 | `npm run docgen:plan -- --spec <openapi.json>` | Incremental docs plan: ADD/UPDATE/REVIEW/REMOVE/SKIP (see `docgen/README.md`) |
 | `npm run brand-assets` | Regenerate social card + favicon.ico from the current branding |
 | `npm run typecheck` | TypeScript check for components/config |
 | `npm test` | Unit tests (docgen planner) |
 
-New pages start from a template in [templates/](templates/): `task.md`, `concept.md`, `reference.md`, `troubleshooting.md`.
+New pages start from a template in [templates/](templates/): `task.md`, `concept.md`, `reference.md`, `troubleshooting.md`, `api-endpoint.md`.
 
 ## Project standards (for anyone taking this repo)
 
@@ -69,11 +70,12 @@ Everything a new contributor or AI assistant needs ships in the repo:
 
 ## Quality gates
 
-Run before committing — all five must pass (CI enforces the same set):
+Run before committing — all six must pass (CI enforces the same set):
 
 ```bash
 npm run lint:md
 npm run lint:prose
+npm run lint:js
 npm run typecheck
 npm test
 npm run build     # onBrokenLinks: throw catches dead links

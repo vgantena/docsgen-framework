@@ -5,8 +5,8 @@ The strategy that keeps generated docs consistent across source-code builds:
 
 ## Pieces
 
-- **docgen.config.json** (repo root, committed) — pipeline definition: source repos, extractors, output mapping, `templateVersion`.
-- **.env** (gitignored; template in `.env.example`) — machine/environment secrets: app URL, demo credentials, tokens.
+- **docgen.config.json** (repo root, committed) — pipeline definition: source repos, extractors, output mapping, `templateVersion`. The planner reads each source's `id`, `type`, and `output`; the `repo` and `extract.*` fields are reserved for future automated extractors and are currently unused (JSON can't carry comments, so it's documented here).
+- **.env** (gitignored; template in `.env.example`) — machine/environment values: the target app URL (`APP_URL`) and demo credentials (`DEMO_USER`/`DEMO_PASS`) for recording flows. For screenshots of authenticated pages, pass a Playwright storage-state file to the capture tool instead: `npm run capture -- --storage-state auth.json …`.
 - **manifest.json** — provenance: for every generated page, which operations it documents, the per-operation contract hashes, source-file hashes, and a `humanEdited` flag. Written by generation, read by the planner. `examples/manifest.example.json` shows a populated one.
 - **tools/docgen-plan.mjs** — the planner. Diffs a freshly extracted OpenAPI spec against the manifest and emits a deterministic change plan.
 

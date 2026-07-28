@@ -12,7 +12,7 @@ description: GET /v1/projects — list projects with filtering and cursor pagina
 
 Returns every project the API key's role can see, newest first, with cursor pagination. Use it to sync project lists into your own systems or to resolve a project `id` by name.
 
-<Badge variant="info">Member role or higher</Badge> <Badge variant="new">All plans</Badge>
+<Badge variant="info">Member role or higher</Badge> <Badge variant="info">All plans</Badge>
 
 ## Request
 
@@ -112,6 +112,7 @@ const {data: projects, next_cursor} = await response.json();
 | `400` | `invalid_parameter` | `status` isn't `active`/`archived`, or `limit` is outside 1–100. |
 | `401` | `unauthenticated` | Missing, malformed, or revoked API key. |
 | `429` | `rate_limited` | Too many requests — wait for `X-RateLimit-Reset`. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
 
 ## Business rules
 
@@ -119,3 +120,9 @@ const {data: projects, next_cursor} = await response.json();
 - Members see only projects they belong to; Admin keys see every project.
 - Cursors expire after 10 minutes; restart from the first page if a cursor is rejected.
 - Archived projects stay listed (with `status: "archived"`) until deleted.
+
+## Related
+
+- [Retrieve a project](/developers/projects-api/get-project) — fetch one project by `id`
+- [Create a project](/developers/projects-api/create-project) — add a project to this list
+- [Authentication](/developers/authentication) — the API key that scopes these results

@@ -1,5 +1,5 @@
 ---
-title: Troubleshooting <area> (e.g., "Troubleshooting sign-in")
+title: Troubleshooting <area> (for example "Troubleshooting sign-in")
 description: Fixes for the most common <area> problems.
 sidebar_position: 1
 ---

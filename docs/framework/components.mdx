@@ -32,7 +32,7 @@ Clickable navigation cards in a responsive grid:
 </CardGrid>
 ```
 
-`CardGrid` accepts `columns={2}` to force a fixed column count. `icon` takes a [Lucide](https://lucide.dev) icon name from the registry in `src/components/Card/icons.tsx` — `rocket`, `book-open`, `code`, `puzzle`, `sliders`, `key`, `folder`, `bell`, `package` — rendered on a light brand-tinted chip beside the title. Add icons by pasting Lucide paths into the registry; emojis aren't used.
+`CardGrid` accepts `columns={2}` to force a fixed column count. `icon` takes a [Lucide](https://lucide.dev) icon name from the registry in `src/components/Card/icons.tsx` — at the time of writing: `rocket`, `book-open`, `code`, `puzzle`, `sliders`, `key`, `folder`, `bell`, `package` — rendered on a light brand-tinted chip beside the title. The registry file is the authoritative list; add icons by pasting Lucide paths into it. Emojis aren't used.
 
 ## Figure — image frames
 
@@ -58,11 +58,11 @@ Screenshots get a consistent frame, caption, and click-to-expand lightbox. `fram
 
 ## Video — video frames
 
-Same framing system for short workflow clips. `autoPlay` turns a clip into a silent GIF-style loop:
+Same framing system for short workflow clips. `autoPlay` turns a clip into a silent loop — controls stay visible so viewers can pause it (an accessibility requirement for moving content):
 
 <Video
-  src="/video/getting-started-tour.mp4"
-  poster="/video/getting-started-tour.jpg"
+  src="/video/getting-started/getting-started-tour.mp4"
+  poster="/video/getting-started/getting-started-tour.jpg"
   caption="Sample training video: from the help-center home through the Getting started guide (recorded with npm run record)."
   frame="browser"
 />
@@ -76,7 +76,9 @@ Same framing system for short workflow clips. `autoPlay` turns a clip into a sil
   startAt={3}              // skip an intro: begin at 0:03
   playbackRate={1.25}      // speed up slow walkthroughs
   muted                    // start silent (implied by autoPlay)
-  controls={false}         // hide the player bar
+  controls={false}         // hide the player bar (default: visible, even with autoPlay)
+  captions="/video/projects/create-project.vtt"  // optional WebVTT captions track
+  label="Creating a project walkthrough"         // optional accessible name for the player
 />
 
 <Video src="/video/hint.mp4" autoPlay width={480} />

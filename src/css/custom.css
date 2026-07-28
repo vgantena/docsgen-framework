@@ -27,19 +27,21 @@
   --ifm-global-radius: var(--doc-radius-md);
   --ifm-navbar-height: var(--doc-nav-height);
   --ifm-background-color: var(--doc-color-bg);
+  --ifm-background-surface-color: var(--doc-color-surface);
   --ifm-toc-border-color: var(--doc-color-border);
 
-  --docusaurus-highlighted-code-line-bg: rgba(232, 89, 63, 0.1);
+  --docusaurus-highlighted-code-line-bg: var(--doc-code-highlight-line-bg);
 }
 
 [data-theme='dark'] {
   --ifm-background-color: var(--doc-color-bg);
   --ifm-background-surface-color: var(--doc-color-surface);
-  --docusaurus-highlighted-code-line-bg: rgba(255, 138, 112, 0.15);
+  --docusaurus-highlighted-code-line-bg: var(--doc-code-highlight-line-bg);
 }
 
-/* ── Layout: compact sidebars + readable content measure ─────────────── */
-/* Left sidebar — overrides the theme's own --doc-sidebar-width (300px). */
+/* ── Layout: compact sidebars + readable content measure ─────────────────
+   (Left sidebar width needs no rule here: the --doc-sidebar-width token in
+   tokens.css shadows the theme's own variable of the same name.) */
 @media (min-width: 997px) {
   /* Right TOC rail: shrink its column from 25% to a fixed width. */
   .row .col.col--3 {

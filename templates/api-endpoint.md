@@ -1,6 +1,6 @@
 ---
 sidebar_position: 99
-title: Verb + object (e.g. "Create a project")
+title: Verb + object (for example "Create a project")
 description: METHOD /v1/path — one-line purpose.
 ---
 
@@ -33,6 +33,12 @@ Two or three sentences: what the endpoint does, when to use it, and notable side
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | … | … | Yes | … |
+
+### Headers (omit section unless the endpoint has notable headers — `Content-Type` when it sends a body, `Idempotency-Key`, …)
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
 
 ### Sample request
 
@@ -96,7 +102,14 @@ List every status this endpoint can return, with the machine-readable `code`:
 | --- | --- | --- |
 | `200` | — | Success. |
 | `401` | `unauthenticated` | … |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
 
 ## Business rules
 
 Bullet the constraints that live outside the schema: role/plan gates, uniqueness rules, limits, idempotency behavior, webhook side effects, retention.
+
+## Related
+
+Two or three links: sibling endpoints, authentication, or the concept/lifecycle the endpoint touches.
+
+- [Sibling endpoint](/developers/resource-api/verb-object) — why the reader would go there
