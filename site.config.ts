@@ -64,6 +64,17 @@ const site = {
   },
 
   /**
+   * Locales served by the site. Add codes such as 'hi' or 'te' to `all` to
+   * enable a language dropdown in the navbar, then run
+   * `npm run write-translations` to scaffold the translatable strings.
+   * `all` must contain `default`.
+   */
+  locales: {
+    default: 'en',
+    all: ['en'] as [string, ...string[]],
+  },
+
+  /**
    * The running SaaS app the docs describe — used by tools/capture.mjs and
    * tools/record.mjs as the default target for screenshots and videos.
    */
@@ -136,6 +147,23 @@ const site = {
   search: {
     hashed: true,
     indexDocs: true,
+  },
+
+  /**
+   * "Was this page helpful?" widget under every doc page. Empty string =
+   * widget hidden; set to your API endpoint to enable, for example
+   * '/api/docs-feedback'. Each vote POSTs JSON {route, helpful, ts}.
+   */
+  feedback: {
+    endpoint: '',
+  },
+
+  /**
+   * Google Analytics (gtag.js), active on production builds only. Empty
+   * string = disabled; set to a measurement ID, for example 'G-XXXXXXXXXX'.
+   */
+  analytics: {
+    gtagTrackingId: '',
   },
 };
 

@@ -2,6 +2,9 @@
 title: Noun (for example "Workspaces")
 description: One sentence defining the concept and why it matters.
 sidebar_position: 1
+category: Items          # KB component this page belongs to (Items, POS, Sale Invoices, …)
+keywords: [word, synonym, phrase]   # what users actually type when searching — include synonyms (bill/invoice, label/barcode)
+audience: vendor         # vendor | internal — controls KB visibility
 ---
 
 # Noun

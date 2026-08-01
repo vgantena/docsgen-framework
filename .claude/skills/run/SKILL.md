@@ -33,7 +33,7 @@ Drive a real browser (Playwright launches installed Chrome/Edge). Minimum smoke 
 3. Search on the production build: Ctrl+K, type a term, click a result — term is highlighted on the target page.
 4. Toggle dark mode — coral tokens flip, nothing unreadable.
 
-Screenshots for docs go through `npm run capture` (never ad-hoc tools) so viewport/scale stay consistent.
+Screenshots for docs go through `npm run capture` (never ad-hoc tools) so viewport/scale stay consistent. For apps with state-based navigation (URL never changes), chain repeatable `--click "[data-testid=…]"` flags to reach the screen; pair with `--storage-state auth.json` for authenticated pages.
 
 ## Quality gates before commit
 

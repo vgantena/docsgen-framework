@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DocsGen Framework — Application Architecture</title>
+<!-- DocsGen Framework — architecture reference. Update in the same PR that changes the pipeline. -->
+<style>
+:root{
+  --ink:#0f172a; --ink-2:#334155; --mut:#64748b; --line:#e2e8f0; --bg:#f8fafc;
+  --card:#ffffff; --navy:#0b1f3a; --navy-2:#12305c; --acc:#2563eb; --acc-2:#0d9488;
+  --amber:#d97706; --vio:#7c3aed; --ok:#059669; --bad:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
+code{font-family:ui-monospace,Consolas,Menlo,monospace;font-size:.86em;background:#eef2f7;border:1px solid var(--line);border-radius:4px;padding:.05rem .35rem}
+pre{background:#0f172a;color:#dbeafe;border-radius:10px;padding: .9rem 1.1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+pre code{background:none;border:none;color:inherit;padding:0}
+a{color:var(--acc)}
+
+/* ── Sticky header with tab menu ── */
+header{position:sticky;top:0;z-index:50;background:var(--navy);color:#e2e8f0;box-shadow:0 2px 14px rgba(2,6,23,.35)}
+.hrow{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:1.2rem;padding:.55rem 1.2rem;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:.5rem;white-space:nowrap}
+.brand b{font-size:1.02rem;letter-spacing:.02em}
+.brand span{font-size:.68rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em}
+nav{display:flex;gap:.15rem;flex-wrap:wrap}
+nav button{background:none;border:none;color:#cbd5e1;font:inherit;font-size:.8rem;font-weight:600;padding:.45rem .7rem;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button:hover{background:var(--navy-2);color:#fff}
+nav button.on{background:var(--acc);color:#fff}
+
+main{max-width:1240px;margin:0 auto;padding:1.4rem 1.2rem 4rem}
+.panel{display:none}
+.panel.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h1{font-size:1.5rem;margin:.4rem 0 .3rem}
+h2{font-size:1.08rem;margin:1.6rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--line)}
+.lede{color:var(--mut);font-size:.92rem;max-width:70rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.15rem;margin:.7rem 0;box-shadow:0 1px 3px rgba(2,6,23,.05)}
+.grid{display:grid;gap:.8rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+table.def{width:100%;border-collapse:collapse;font-size:.83rem}
+table.def th{text-align:left;color:var(--mut);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;padding:.4rem .55rem;border-bottom:2px solid var(--line)}
+table.def td{padding:.45rem .55rem;border-bottom:1px solid #f1f5f9;vertical-align:top}
+table.def tr:last-child td{border-bottom:none}
+.chip{display:inline-block;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:.14rem .55rem}
+.chip.ok{background:#ecfdf5;color:var(--ok)}
+.chip.warn{background:#fffbeb;color:var(--amber)}
+.chip.info{background:#eff6ff;color:var(--acc)}
+.chip.bad{background:#fef2f2;color:var(--bad)}
+.chip.vio{background:#f5f3ff;color:var(--vio)}
+.kv{font-size:.83rem}
+.kv b{color:var(--ink-2)}
+.note{border-left:4px solid var(--acc);background:#eff6ff;border-radius:0 10px 10px 0;padding:.6rem .9rem;font-size:.85rem;margin:.7rem 0}
+.warnbox{border-left:4px solid var(--amber);background:#fffbeb;border-radius:0 10px 10px 0;padding:.6rem .9rem;font-size:.85rem;margin:.7rem 0}
+.src{color:var(--mut);font-size:.74rem;margin-top:.35rem}
+
+/* ── SVG diagram helpers ── */
+.dia{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.6rem;margin:.7rem 0;overflow-x:auto}
+.dia svg{display:block;min-width:900px;width:100%;height:auto}
+.t-h{font:700 14px 'Segoe UI',sans-serif;fill:var(--ink)}
+.t-b{font:600 11.5px 'Segoe UI',sans-serif;fill:var(--ink-2)}
+.t-s{font:500 10px 'Segoe UI',sans-serif;fill:var(--mut)}
+.t-c{font:600 10.5px ui-monospace,Consolas,monospace;fill:#1d4ed8}
+.t-w{font:600 11px 'Segoe UI',sans-serif;fill:#fff}
+.box{fill:#fff;stroke:#cbd5e1;stroke-width:1.4;rx:10}
+.box-acc{fill:#eff6ff;stroke:var(--acc);stroke-width:1.6;rx:10}
+.box-teal{fill:#f0fdfa;stroke:var(--acc-2);stroke-width:1.6;rx:10}
+.box-amber{fill:#fffbeb;stroke:var(--amber);stroke-width:1.6;rx:10}
+.box-vio{fill:#f5f3ff;stroke:var(--vio);stroke-width:1.6;rx:10}
+.box-dark{fill:var(--navy);stroke:var(--navy-2);rx:10}
+.lane{fill:#f8fafc;stroke:#e2e8f0;stroke-dasharray:4 4;rx:12}
+.flow{fill:none;stroke-width:2.2;stroke-linecap:round;marker-end:url(#arr)}
+.f-acc{stroke:var(--acc)} .f-teal{stroke:var(--acc-2)} .f-amber{stroke:var(--amber)} .f-vio{stroke:var(--vio)} .f-mut{stroke:#94a3b8}
+.anim{stroke-dasharray:7 7;animation:dash 1.1s linear infinite}
+.anim-slow{stroke-dasharray:7 7;animation:dash 2.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-14}}
+.pulse{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion: reduce){.anim,.anim-slow,.pulse{animation:none}}
+.legend{display:flex;gap:1.1rem;flex-wrap:wrap;font-size:.75rem;color:var(--mut);margin:.3rem 0 .1rem}
+.legend .sw{display:inline-block;width:20px;height:0;border-top:3px solid;border-radius:2px;margin-right:.35rem;vertical-align:middle}
+.steps{counter-reset:s;list-style:none;margin:.5rem 0}
+.steps li{position:relative;padding:.35rem 0 .35rem 2.3rem;font-size:.87rem}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:.35rem;width:1.55rem;height:1.55rem;border-radius:50%;background:var(--navy);color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="brand"><b>DocsGen Framework</b><span>Architecture</span></div>
+    <nav id="menu">
+      <button data-tab="overview" class="on">Overview</button>
+      <button data-tab="setup">Setup</button>
+      <button data-tab="generation">Generation Process</button>
+      <button data-tab="dataflow">Data Flow</button>
+      <button data-tab="editing">Manual Edits</button>
+      <button data-tab="media">Media Storage</button>
+      <button data-tab="outputs">Outputs &amp; Exporters</button>
+      <button data-tab="streams">Upstream / Downstream</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════ OVERVIEW ═══════════════ -->
+<section class="panel on" id="tab-overview">
+  <h1>One docs repo, four products out</h1>
+  <p class="lede">DocsGen is a reusable help-center framework (Docusaurus + custom tooling) whose single markdown source tree produces <b>four synchronized artifacts</b>: the public docs website, a printable PDF manual, scripted screenshots/videos, and a <b>knowledge-base corpus ready to ground an AI support assistant</b>. Every page is written once, gated by lint/tests, and exported everywhere it is needed — for whichever product adopts the framework.</p>
+
+  <div class="dia"><svg viewBox="0 0 1100 320" role="img" aria-label="DocsGen at a glance">
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker></defs>
+    <rect class="lane" x="10" y="20" width="250" height="280"/>
+    <text class="t-s" x="24" y="42">SOURCES (humans + machines)</text>
+    <rect class="box" x="30" y="58" width="210" height="46"/><text class="t-b" x="44" y="78">Writers · templates/*.md</text><text class="t-s" x="44" y="93">task · concept · reference · api · fix</text>
+    <rect class="box" x="30" y="116" width="210" height="46"/><text class="t-b" x="44" y="136">Product OpenAPI spec</text><text class="t-s" x="44" y="151">deterministic extract, per-op hashes</text>
+    <rect class="box" x="30" y="174" width="210" height="46"/><text class="t-b" x="44" y="194">Running product app</text><text class="t-s" x="44" y="209">capture / record with demo data</text>
+    <rect class="box" x="30" y="232" width="210" height="46"/><text class="t-b" x="44" y="252">site.config.ts + tokens.css</text><text class="t-s" x="44" y="267">branding · nav · visual design</text>
+
+    <rect class="box-dark" x="360" y="105" width="220" height="110"/>
+    <text class="t-w" x="392" y="140">docs/ (MD + MDX)</text>
+    <text class="t-s" x="392" y="158" fill="#94a3b8">frontmatter: category ·</text>
+    <text class="t-s" x="392" y="172" fill="#94a3b8">keywords · audience</text>
+    <text class="t-s" x="392" y="192" fill="#94a3b8">gates: vale · markdownlint ·</text>
+    <text class="t-s" x="392" y="206" fill="#94a3b8">typecheck · tests · build</text>
+
+    <path class="flow f-mut anim-slow" d="M240 81 C310 81 320 120 358 128"/>
+    <path class="flow f-mut anim-slow" d="M240 139 L358 150"/>
+    <path class="flow f-mut anim-slow" d="M240 197 C310 197 320 185 358 178"/>
+    <path class="flow f-mut anim-slow" d="M240 255 C315 255 320 205 358 196"/>
+
+    <rect class="box-acc" x="700" y="28" width="200" height="52"/><text class="t-b" x="716" y="50">Docs website</text><text class="t-c" x="716" y="66">npm run build → build/</text>
+    <rect class="box-amber" x="700" y="96" width="200" height="52"/><text class="t-b" x="716" y="118">PDF manual</text><text class="t-c" x="716" y="134">npm run pdf → manual.pdf</text>
+    <rect class="box-teal" x="700" y="164" width="200" height="52"/><text class="t-b" x="716" y="186">AI knowledge base</text><text class="t-c" x="716" y="202">docgen:kb-export</text>
+    <rect class="box-vio" x="700" y="232" width="200" height="52"/><text class="t-b" x="716" y="254">Media library</text><text class="t-c" x="716" y="270">static/img · static/video</text>
+
+    <path class="flow f-acc anim" d="M580 130 C640 120 640 60 698 54"/>
+    <path class="flow f-amber anim" d="M580 150 C640 145 640 122 698 122"/>
+    <path class="flow f-teal anim" d="M580 170 C640 175 640 190 698 190"/>
+    <path class="flow f-vio anim" d="M580 190 C640 200 640 258 698 258"/>
+
+    <rect class="box" x="960" y="164" width="120" height="52"/><text class="t-b" x="972" y="186">AI assistant</text><text class="t-s" x="972" y="201">chat + drafts</text>
+    <path class="flow f-teal anim" d="M900 190 L958 190"/>
+  </svg></div>
+
+  <div class="grid g3">
+    <div class="card kv"><b>Repo</b><br>docsgen-framework — Docusaurus 3, docs-only mode, custom MDX components, Node ≥ 20.</div>
+    <div class="card kv"><b>Philosophy</b><br>Deterministic diff first, AI second: nothing regenerates unless a content hash changed, and human-edited pages are protected by provenance flags.</div>
+    <div class="card kv"><b>Adopting product plugs in via config</b><br>Product name/URLs in <code>site.config.ts</code>, KB vocabulary + API path in <code>docgen.config.json</code>, secrets in <code>.env</code> — the framework itself stays product-free.</div>
+  </div>
+
+  <h2>The five page types</h2>
+  <div class="card"><table class="def">
+    <thead><tr><th>Type</th><th>Purpose</th><th>Template</th><th>AI-feed value</th></tr></thead>
+    <tbody>
+    <tr><td><b>Task</b></td><td>One goal, numbered steps (Before you begin → Steps → Verify → Troubleshooting)</td><td><code>templates/task.md</code></td><td><span class="chip ok">highest</span> — steps lift straight into chat answers</td></tr>
+    <tr><td><b>Troubleshooting</b></td><td>Symptom → cause → fix</td><td><code>templates/troubleshooting.md</code></td><td><span class="chip ok">high</span> — mirrors how customers phrase questions</td></tr>
+    <tr><td><b>Concept</b></td><td>What something is; no steps</td><td><code>templates/concept.md</code></td><td><span class="chip info">medium</span></td></tr>
+    <tr><td><b>Reference</b></td><td>Tables of settings, limits, fields</td><td><code>templates/reference.md</code></td><td><span class="chip info">medium</span></td></tr>
+    <tr><td><b>API endpoint</b></td><td>One REST operation per page</td><td><code>templates/api-endpoint.md</code></td><td><span class="chip warn">internal only</span> — kept out of the customer-facing chat corpus</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ═══════════════ SETUP ═══════════════ -->
+<section class="panel" id="tab-setup">
+  <h1>Setup — machine, product, and credentials</h1>
+  <p class="lede">Three layers of configuration, deliberately separated: <b>machine tools</b> (installed once per workstation), <b>product identity</b> (committed, per product), and <b>secrets/environment</b> (gitignored, per machine).</p>
+
+  <h2>1 · Machine prerequisites (once per workstation)</h2>
+  <div class="card">
+  <pre><code># Windows                                   # macOS
+winget install JohnMacFarlane.Pandoc \       brew install pandoc typst vale ffmpeg
+  Typst.Typst errata-ai.Vale Gyan.FFmpeg
+
+npm install                # framework deps
+npx playwright install ffmpeg   # recorder codec (screenshots use your Chrome/Edge)
+vale sync                  # prose-lint style packages
+npm run doctor             # validates the whole toolchain, names anything missing</code></pre>
+  <p class="src">Each binary powers one exporter: pandoc+typst → PDF · vale → prose gate · ffmpeg → video pipeline. <code>doctor</code> fails hard only on Node/deps breakage; missing media tools degrade those features with a warning.</p>
+  </div>
+
+  <h2>2 · Product identity (committed)</h2>
+  <div class="grid g2">
+    <div class="card kv"><b><code>site.config.ts</code></b><br>Product name, URLs, navbar, footer, announcement bar. The only file that knows <i>which</i> product this docs site is for. <code>npm run init-product</code> bootstraps a fresh product.</div>
+    <div class="card kv"><b><code>src/css/tokens.css</code></b><br>Colors, radii, shadows, screenshot frames — the entire visual design as tokens. No other file may hardcode design values.</div>
+    <div class="card kv"><b><code>docgen.config.json</code></b><br>Pipeline definition: sources, template version, and the <b>kb section</b> — API base path, body cap, and the controlled <b>category vocabulary</b> that must match the adopting product's server-side KB component list exactly.</div>
+    <div class="card kv"><b><code>templates/</code> + <code>CLAUDE.md</code></b><br>The authoring contract: five page skeletons plus the rulebook both humans and AI assistants follow. Bump <code>templateVersion</code> only when these change — it deliberately marks every generated page stale.</div>
+  </div>
+
+  <h2>3 · Environment &amp; secrets (gitignored <code>.env</code>)</h2>
+  <div class="card"><table class="def">
+    <thead><tr><th>Variable</th><th>Used by</th><th>Purpose</th></tr></thead>
+    <tbody>
+    <tr><td><code>APP_URL</code></td><td>capture / record / login</td><td>The running product app screenshots are taken against</td></tr>
+    <tr><td><code>DEMO_USER</code> / <code>DEMO_PASS</code></td><td>login flow → storage state</td><td>Demo account — <b>seeded demo data only, never customer data</b></td></tr>
+    <tr><td><code>KB_BASE_URL</code></td><td>docgen:kb-export</td><td>Platform API origin for the knowledge-base upsert (localhost → Dev → PROD)</td></tr>
+    <tr><td><code>KB_USER</code> / <code>KB_PASS</code></td><td>docgen:kb-export --write</td><td>Platform account with support-triage rights; write mode only</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>Daily loop after setup:</b> <code>npm run start</code> → live-reload authoring at localhost:3000 · edit · <code>npm run lint:md &amp;&amp; npm run lint:prose</code> · PR. CI re-runs every gate.</div>
+</section>
+
+<!-- ═══════════════ GENERATION ═══════════════ -->
+<section class="panel" id="tab-generation">
+  <h1>Generation process — deterministic diff first, AI second</h1>
+  <p class="lede">Two generation lanes share one rule: <b>machines decide <i>what</i> changed, AI only writes <i>inside</i> a template, humans gate everything</b>. Nothing is ever regenerated wholesale — the manifest remembers what exists and who touched it.</p>
+
+  <h2>Lane A — API reference from the product's OpenAPI spec</h2>
+  <div class="dia"><svg viewBox="0 0 1100 250" role="img" aria-label="API docs generation pipeline">
+    <rect class="box" x="15" y="90" width="160" height="60"/><text class="t-b" x="30" y="114">Product repo build</text><text class="t-s" x="30" y="130">extracts OpenAPI JSON</text><text class="t-s" x="30" y="143">(deterministic — no AI)</text>
+    <rect class="box-acc" x="225" y="90" width="185" height="60"/><text class="t-b" x="240" y="112">docgen:plan</text><text class="t-c" x="240" y="128">tools/docgen-plan.mjs</text><text class="t-s" x="240" y="143">per-operation contract hashes</text>
+    <rect class="box-dark" x="460" y="20" width="180" height="210"/>
+    <text class="t-w" x="478" y="46">Change plan</text>
+    <text class="t-s" x="478" y="70" fill="#86efac">ADD — new operation</text>
+    <text class="t-s" x="478" y="90" fill="#93c5fd">UPDATE — hash changed</text>
+    <text class="t-s" x="478" y="110" fill="#fcd34d">REVIEW — human-edited</text>
+    <text class="t-s" x="478" y="130" fill="#fca5a5">REMOVE — op gone</text>
+    <text class="t-s" x="478" y="150" fill="#94a3b8">SKIP — byte-identical</text>
+    <text class="t-s" x="478" y="182" fill="#94a3b8">AI touches ONLY</text>
+    <text class="t-s" x="478" y="196" fill="#94a3b8">ADD + UPDATE, template-</text>
+    <text class="t-s" x="478" y="210" fill="#94a3b8">constrained</text>
+    <rect class="box-amber" x="690" y="60" width="170" height="55"/><text class="t-b" x="705" y="82">Quality gates</text><text class="t-s" x="705" y="98">vale · mdlint · typecheck</text><text class="t-s" x="705" y="110">tests · build (links)</text>
+    <rect class="box-teal" x="690" y="145" width="170" height="55"/><text class="t-b" x="705" y="167">PR + human review</text><text class="t-s" x="705" y="183">manifest hashes updated</text><text class="t-s" x="705" y="195">in the same PR</text>
+    <rect class="box" x="915" y="100" width="165" height="60"/><text class="t-b" x="930" y="124">docgen/manifest.json</text><text class="t-s" x="930" y="140">provenance: op hashes,</text><text class="t-s" x="930" y="153">humanEdited flags</text>
+    <path class="flow f-mut anim" d="M175 120 L223 120"/>
+    <path class="flow f-acc anim" d="M410 120 L458 122"/>
+    <path class="flow f-amber anim" d="M640 100 L688 90"/>
+    <path class="flow f-teal anim" d="M640 150 L688 168"/>
+    <path class="flow f-mut anim-slow" d="M860 172 C895 170 895 140 913 134"/>
+    <path class="flow f-mut anim-slow" d="M915 118 C880 110 700 30 412 96" stroke-dasharray="3 5"/>
+    <text class="t-s" x="640" y="18">manifest feeds the next plan — the loop closes</text>
+  </svg></div>
+  <div class="warnbox"><b>The REVIEW guarantee:</b> a page whose <code>humanEdited</code> flag is set is never overwritten by generation — a contract change on it is routed to a human instead. Hand-polish is permanent, not a casualty of the next build.</div>
+
+  <h2>Lane B — user guides from the running product (the <code>ui-guide</code> recipe)</h2>
+  <ol class="steps">
+    <li><b>Seed demo data</b> in the product app — screenshots must never show customer data.</li>
+    <li><b><code>npm run login</code></b> — capture a Playwright storage state for authenticated pages.</li>
+    <li><b>Media manifest</b> — declare each screenshot/video: URL, selector highlights, output name.</li>
+    <li><b>Write the guide pages</b> from <code>templates/task.md</code> with the KB frontmatter trio (<code>category</code> · <code>keywords</code> · <code>audience</code>).</li>
+    <li><b>Gates</b> — vale, markdownlint, typecheck, tests, build.</li>
+    <li><b><code>npm run docgen:kb-export</code></b> — plan (dry-run), then <code>--write</code> to publish into the product KB.</li>
+  </ol>
+  <p class="src">Coverage tracking: <code>docs/framework/kb-coverage.md</code> — which product modules have guides, and the writing order (support volume first).</p>
+</section>
+
+<!-- ═══════════════ DATA FLOW ═══════════════ -->
+<section class="panel" id="tab-dataflow">
+  <h1>Data flow — from keystroke to customer answer</h1>
+  <p class="lede">Three animated lanes: <b>authoring</b> (blue), <b>publishing</b> (amber), and <b>AI grounding</b> (teal). The teal lane is what makes a docs edit end up inside a support-chat reply.</p>
+  <div class="legend">
+    <span><span class="sw" style="border-color:var(--acc)"></span>authoring</span>
+    <span><span class="sw" style="border-color:var(--amber)"></span>publish (site + PDF)</span>
+    <span><span class="sw" style="border-color:var(--acc-2)"></span>AI grounding (KB)</span>
+    <span><span class="sw" style="border-color:#94a3b8"></span>media capture</span>
+  </div>
+  <div class="dia"><svg viewBox="0 0 1100 430" role="img" aria-label="End to end data flow">
+    <rect class="lane" x="10" y="15" width="1080" height="120"/><text class="t-s" x="24" y="35">AUTHORING</text>
+    <rect class="box-acc" x="30" y="55" width="150" height="55"/><text class="t-b" x="45" y="77">Writer edits page</text><text class="t-c" x="45" y="93">docs/**/*.md</text>
+    <rect class="box" x="235" y="55" width="150" height="55"/><text class="t-b" x="250" y="77">Live preview</text><text class="t-c" x="250" y="93">npm run start</text>
+    <rect class="box" x="440" y="55" width="150" height="55"/><text class="t-b" x="455" y="77">Gates</text><text class="t-s" x="455" y="93">vale · mdlint · build</text>
+    <rect class="box" x="645" y="55" width="150" height="55"/><text class="t-b" x="660" y="77">PR → CI → merge</text><text class="t-s" x="660" y="93">same gates re-run</text>
+    <rect class="box-dark" x="880" y="55" width="185" height="55" class="pulse"/><text class="t-w" x="897" y="78">main = source of truth</text><text class="t-s" x="897" y="94" fill="#94a3b8">every artifact derives from it</text>
+    <path class="flow f-acc anim" d="M180 82 L233 82"/><path class="flow f-acc anim" d="M385 82 L438 82"/><path class="flow f-acc anim" d="M590 82 L643 82"/><path class="flow f-acc anim" d="M795 82 L878 82"/>
+
+    <rect class="lane" x="10" y="155" width="530" height="125"/><text class="t-s" x="24" y="175">PUBLISH</text>
+    <rect class="box-amber" x="30" y="195" width="150" height="60"/><text class="t-b" x="45" y="217">Static site</text><text class="t-c" x="45" y="233">build/ →</text><text class="t-s" x="45" y="247">docs.&lt;product&gt;.com</text>
+    <rect class="box-amber" x="235" y="195" width="140" height="60"/><text class="t-b" x="250" y="217">PDF manual</text><text class="t-c" x="250" y="233">npm run pdf</text><text class="t-s" x="250" y="247">pandoc → typst</text>
+    <rect class="box" x="420" y="195" width="100" height="60" stroke-dasharray="5 4"/><text class="t-b" x="432" y="220">deploy job</text><text class="t-s" x="432" y="236">planned: docs</text><text class="t-s" x="432" y="248">image lane</text>
+    <path class="flow f-amber anim" d="M930 110 C900 170 300 160 110 193"/>
+    <path class="flow f-amber anim" d="M940 110 C910 185 450 175 305 193"/>
+
+    <rect class="lane" x="560" y="155" width="530" height="260"/><text class="t-s" x="576" y="175">AI GROUNDING (optional — products with an AI assistant)</text>
+    <rect class="box-teal" x="585" y="195" width="185" height="60"/><text class="t-b" x="600" y="215">docgen:kb-export</text><text class="t-s" x="600" y="230">mdx→plain · slug upsert</text><text class="t-s" x="600" y="244">plan first, --write second</text>
+    <rect class="box-teal" x="830" y="195" width="130" height="60"/><text class="t-b" x="845" y="217">Product KB store</text><text class="t-s" x="845" y="233">via the KB API</text><text class="t-s" x="845" y="246">versioned server-side</text>
+    <rect class="box" x="585" y="330" width="160" height="60"/><text class="t-b" x="600" y="352">Retrieval + prompt</text><text class="t-s" x="600" y="368">keyword/semantic → top N</text><text class="t-s" x="600" y="381">grounding-only rules</text>
+    <rect class="box-vio" x="800" y="330" width="160" height="60"/><text class="t-b" x="815" y="352">Customer answer</text><text class="t-s" x="815" y="368">live chat reply or</text><text class="t-s" x="815" y="381">draft for a human agent</text>
+    <path class="flow f-teal anim" d="M960 110 C940 150 800 165 700 193"/>
+    <path class="flow f-teal anim" d="M770 225 L828 225"/>
+    <path class="flow f-teal anim" d="M880 255 C860 300 720 310 675 328"/>
+    <path class="flow f-teal anim" d="M745 360 L798 360"/>
+
+    <rect class="box" x="30" y="330" width="180" height="60"/><text class="t-b" x="45" y="352">Product app (demo)</text><text class="t-s" x="45" y="368">capture / record flows</text><text class="t-s" x="45" y="381">highlight rings, 2× scale</text>
+    <rect class="box-vio" x="270" y="330" width="160" height="60"/><text class="t-b" x="285" y="352">static/img · video</text><text class="t-s" x="285" y="368">named assets +</text><text class="t-s" x="285" y="381">mandatory alt text</text>
+    <path class="flow f-mut anim-slow" d="M210 360 L268 360"/>
+    <path class="flow f-mut anim-slow" d="M350 328 C360 240 200 150 110 112"/>
+    <text class="t-s" x="238" y="315">media feeds pages; alt text survives into the KB export</text>
+  </svg></div>
+
+  <div class="note"><b>Read the teal lane right-to-left for the payoff:</b> when a customer asks the product's chat a "how do I…?" question, the answer's words trace back through retrieval → the KB store → the export transform → the exact markdown a writer merged to <code>main</code>. Fix the doc, re-export, and the AI's answer changes — no model retraining, ever.</div>
+</section>
+
+<!-- ═══════════════ MANUAL EDITS ═══════════════ -->
+<section class="panel" id="tab-editing">
+  <h1>Manual edits — change a page, keep every artifact honest</h1>
+  <p class="lede">Editing is plain markdown; the framework's job is making sure a manual edit can't silently rot the site, the PDF, the manifest, or the AI corpus.</p>
+
+  <h2>The edit loop</h2>
+  <ol class="steps">
+    <li>Branch from <code>main</code>; open the page under <code>docs/</code> (or start from a template for a new one).</li>
+    <li><code>npm run start</code> — live reload; see the change as you type.</li>
+    <li>If the change needs a screenshot: update the media manifest and re-run <code>npm run capture</code> — assets regenerate pixel-consistent, no image editor involved.</li>
+    <li>Run the gates (<code>lint:md</code> · <code>lint:prose</code> · <code>typecheck</code> · <code>test</code> · <code>build</code>).</li>
+    <li>PR → CI re-runs the same gates → review → merge.</li>
+    <li>Re-export downstream: rebuild site/PDF; run <code>docgen:kb-export</code> so the AI corpus picks up the change (only the changed pages upsert — hash-diffed).</li>
+  </ol>
+
+  <h2>What protects a manual edit</h2>
+  <div class="grid g2">
+    <div class="card kv"><span class="chip ok">provenance</span><br><b>humanEdited flag.</b> Editing a generated API page flips it to human-owned in <code>docgen/manifest.json</code>; every future contract change on it becomes a <b>REVIEW</b> plan item — generation will never overwrite your wording.</div>
+    <div class="card kv"><span class="chip ok">idempotent export</span><br><b>Hash-diffed KB sync.</b> The KB manifest stores a content hash per page; re-running the export upserts only pages whose exported payload actually changed. A whitespace-only merge touches nothing downstream.</div>
+    <div class="card kv"><span class="chip info">style guard</span><br><b>Vale + markdownlint as reviewers.</b> Banned filler words, heading structure, broken links — a malformed edit cannot merge, whoever (or whatever) wrote it.</div>
+    <div class="card kv"><span class="chip warn">honesty rule</span><br><b>Text must stand alone.</b> Steps may never say "as shown below" with the meaning only in an image — alt text and step text carry the full instruction, because the AI and the PDF both read text.</div>
+  </div>
+
+  <h2>Redeploy after an edit — current state</h2>
+  <div class="card"><table class="def">
+    <thead><tr><th>Artifact</th><th>Today</th><th>Target state</th></tr></thead>
+    <tbody>
+    <tr><td>Docs website</td><td><span class="chip warn">manual</span> <code>npm run build</code> + hand-publish</td><td>Post-merge CI builds and ships via the product's docs-image lane (SHA-tagged, Dev auto → PROD approved)</td></tr>
+    <tr><td>PDF manual</td><td><span class="chip ok">one command</span> <code>npm run pdf</code></td><td>Same, attached to releases by CI</td></tr>
+    <tr><td>AI knowledge base</td><td><span class="chip warn">manual</span> <code>docgen:kb-export --write</code> by a maintainer</td><td>Post-merge CI export against the product's staging KB; production refresh rides the product's promotion gate</td></tr>
+    </tbody>
+  </table>
+  <p class="src">The gap is deliberate scope, not accident: gates and exporters are done; the delivery wiring is the next batch.</p></div>
+</section>
+
+<!-- ═══════════════ MEDIA ═══════════════ -->
+<section class="panel" id="tab-media">
+  <h1>Images &amp; videos — scripted, named, and text-backed</h1>
+  <p class="lede">Media is treated as <b>generated code</b>, not attachments: every asset is reproducible from a command + manifest, lives at a predictable path, and carries text (alt/caption) that survives into every text-only consumer.</p>
+
+  <h2>Storage layout</h2>
+  <div class="card"><pre><code>static/
+  img/&lt;section&gt;/&lt;verb-object&gt;.png     e.g. static/img/items/add-item-2.png
+  video/&lt;section&gt;/&lt;flow-name&gt;.mp4     webm master → web-ready mp4 (+ poster jpg)
+tools/
+  flows/&lt;flow&gt;.mjs                    scripted Playwright journeys (login, add-item…)
+  media manifests                     what to shoot: URL, selectors to highlight, output</code></pre>
+  <p class="src">Naming = the page's verb-object slug, so a page and its assets sort together. Tests (<code>media-manifests.test.mjs</code>) keep manifests well-formed and single-frame consistent.</p></div>
+
+  <h2>Capture pipeline</h2>
+  <div class="dia"><svg viewBox="0 0 1100 180" role="img" aria-label="Media capture pipeline">
+    <rect class="box" x="15" y="55" width="170" height="60"/><text class="t-b" x="30" y="77">Product app + seed</text><text class="t-s" x="30" y="93">APP_URL · demo creds</text><text class="t-s" x="30" y="106">storage-state auth</text>
+    <rect class="box-acc" x="240" y="55" width="180" height="60"/><text class="t-b" x="255" y="77">capture.mjs / record.mjs</text><text class="t-s" x="255" y="93">1280×800 @ 2× · highlight</text><text class="t-s" x="255" y="106">rings · scripted flows</text>
+    <rect class="box-vio" x="475" y="55" width="170" height="60"/><text class="t-b" x="490" y="77">ffmpeg post</text><text class="t-s" x="490" y="93">webm → mp4 + poster</text><text class="t-s" x="490" y="106">web-ready bitrates</text>
+    <rect class="box-teal" x="700" y="55" width="170" height="60"/><text class="t-b" x="715" y="77">MDX components</text><text class="t-s" x="715" y="93">Figure · Carousel · Video</text><text class="t-s" x="715" y="106">frames from tokens.css</text>
+    <rect class="box-amber" x="925" y="55" width="160" height="60"/><text class="t-b" x="940" y="77">Text fallbacks</text><text class="t-s" x="940" y="93">alt + captions reach</text><text class="t-s" x="940" y="106">PDF + KB export</text>
+    <path class="flow f-mut anim" d="M185 85 L238 85"/>
+    <path class="flow f-acc anim" d="M420 85 L473 85"/>
+    <path class="flow f-vio anim" d="M645 85 L698 85"/>
+    <path class="flow f-teal anim" d="M870 85 L923 85"/>
+  </svg></div>
+
+  <h2>Rules that make media safe</h2>
+  <div class="grid g3">
+    <div class="card kv"><span class="chip bad">never</span><br>Real customer data on screen — seeded demo data only, enforced by the recipe.</div>
+    <div class="card kv"><span class="chip ok">always</span><br>Real alt text describing exactly what's shown — it is the image's representative in the PDF and the AI corpus.</div>
+    <div class="card kv"><span class="chip info">refresh</span><br>UI changed? Re-run the capture commands — assets regenerate identically framed; no manual screenshotting drift.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ OUTPUTS & EXPORTERS ═══════════════ -->
+<section class="panel" id="tab-outputs">
+  <h1>Outputs &amp; exporters — one tree, four artifacts</h1>
+  <p class="lede">Every exporter is a pure function of <code>main</code>: same input, same artifact. The KB exporter additionally writes a <b>plan file first</b> so any product can consume the payloads with its own uploader.</p>
+
+  <div class="card"><table class="def">
+    <thead><tr><th>Exporter</th><th>Command</th><th>Output</th><th>Notes</th></tr></thead>
+    <tbody>
+    <tr><td><b>Static site</b></td><td><code>npm run build</code></td><td><code>build/</code> — the docs website</td><td>Also the broken-link gate; serve locally with <code>npm run serve</code></td></tr>
+    <tr><td><b>PDF manual</b></td><td><code>npm run pdf</code></td><td><code>build/manual.pdf</code></td><td><code>tools/pdf-manifest.json</code> orders chapters; pandoc → typst render</td></tr>
+    <tr><td><b>KB export</b></td><td><code>npm run docgen:kb-export</code></td><td><code>docgen/kb-plan.json</code> (dry-run) → the product's KB via its API (<code>--write</code>)</td><td>mdx→plain transform · slug-keyed upsert · orphans archived · manifest provenance</td></tr>
+    <tr><td><b>Media</b></td><td><code>npm run capture / record</code></td><td><code>static/img · static/video</code></td><td>Reproducible from manifests + flows</td></tr>
+    <tr><td><b>API plan</b></td><td><code>npm run docgen:plan</code></td><td>ADD/UPDATE/REVIEW/REMOVE/SKIP plan</td><td>Drives Lane A generation; never writes docs itself</td></tr>
+    <tr><td><b>Brand assets</b></td><td><code>npm run brand-assets</code></td><td>social card · favicon</td><td>Derived from current branding tokens</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Inside the KB exporter (the AI bridge)</h2>
+  <div class="dia"><svg viewBox="0 0 1100 210" role="img" aria-label="KB export internals">
+    <rect class="box" x="15" y="70" width="150" height="60"/><text class="t-b" x="30" y="92">Walk docs/</text><text class="t-s" x="30" y="108">pages with KB</text><text class="t-s" x="30" y="121">frontmatter only</text>
+    <rect class="box-acc" x="215" y="70" width="170" height="60"/><text class="t-b" x="230" y="92">mdx-to-plain</text><text class="t-s" x="230" y="108">Steps→list · Figure→alt</text><text class="t-s" x="230" y="121">Tabs→json/curl · pure fn</text>
+    <rect class="box" x="435" y="70" width="160" height="60"/><text class="t-b" x="450" y="92">Validate + map</text><text class="t-s" x="450" y="108">category ∈ vocabulary</text><text class="t-s" x="450" y="121">audience → visibility</text>
+    <rect class="box-amber" x="645" y="70" width="160" height="60"/><text class="t-b" x="660" y="92">Plan (dry-run)</text><text class="t-c" x="660" y="108">kb-plan.json</text><text class="t-s" x="660" y="121">create · update · skip · orphan</text>
+    <rect class="box-teal" x="855" y="70" width="230" height="60"/><text class="t-b" x="870" y="88">--write: slug-keyed upsert</text><text class="t-s" x="870" y="103">POST/PUT {apiBasePath}/kb/articles</text><text class="t-s" x="870" y="117">server-side version history ·</text><text class="t-s" x="870" y="130">orphans → archived, never deleted</text>
+    <path class="flow f-mut anim" d="M165 100 L213 100"/>
+    <path class="flow f-acc anim" d="M385 100 L433 100"/>
+    <path class="flow f-mut anim" d="M595 100 L643 100"/>
+    <path class="flow f-amber anim" d="M805 100 L853 100"/>
+    <text class="t-s" x="648" y="160">The plan file is the stable contract: a product with a different KB API</text>
+    <text class="t-s" x="648" y="175">consumes kb-plan.json with its own uploader instead of --write.</text>
+  </svg></div>
+
+  <div class="warnbox"><b>Two open fixes before a first production export:</b> the <code>&lt;Carousel&gt;</code> per-slide captions are currently dropped by the transform (add <code>transformCarousels</code> + a test), and API endpoint pages should carry <code>audience: internal</code> so REST samples stay out of a customer-facing chat corpus.</div>
+</section>
+
+<!-- ═══════════════ STREAMS ═══════════════ -->
+<section class="panel" id="tab-streams">
+  <h1>Upstream &amp; downstream — what feeds this repo, and what it feeds</h1>
+  <p class="lede">DocsGen sits between the product (upstream truth) and every surface where its words reach people or models (downstream). Each edge is versioned and diffable.</p>
+
+  <div class="dia"><svg viewBox="0 0 1100 360" role="img" aria-label="Upstream and downstream map">
+    <rect class="lane" x="10" y="20" width="300" height="320"/><text class="t-s" x="26" y="42">UPSTREAM — sources of truth</text>
+    <rect class="box" x="30" y="60" width="260" height="52"/><text class="t-b" x="45" y="80">Product OpenAPI spec</text><text class="t-s" x="45" y="96">contract hashes drive Lane A generation</text>
+    <rect class="box" x="30" y="126" width="260" height="52"/><text class="t-b" x="45" y="146">Running product app + demo data</text><text class="t-s" x="45" y="162">screenshots, videos, verified UI names</text>
+    <rect class="box" x="30" y="192" width="260" height="52"/><text class="t-b" x="45" y="212">Product KB vocabulary</text><text class="t-s" x="45" y="228">docgen.config.json kb.components — must match server</text>
+    <rect class="box" x="30" y="258" width="260" height="52"/><text class="t-b" x="45" y="278">Writers &amp; AI assistants</text><text class="t-s" x="45" y="294">same templates, same CLAUDE.md rulebook</text>
+
+    <rect class="box-dark" x="430" y="130" width="240" height="100" class="pulse"/>
+    <text class="t-w" x="470" y="168">docsgen-framework</text>
+    <text class="t-s" x="470" y="188" fill="#94a3b8">docs/ + templates + tools</text>
+    <text class="t-s" x="470" y="204" fill="#94a3b8">gates · manifests · exporters</text>
+
+    <path class="flow f-mut anim-slow" d="M290 86 C370 90 380 140 428 150"/>
+    <path class="flow f-mut anim-slow" d="M290 152 L428 170"/>
+    <path class="flow f-mut anim-slow" d="M290 218 C370 215 380 195 428 190"/>
+    <path class="flow f-mut anim-slow" d="M290 284 C380 280 380 215 428 208"/>
+
+    <rect class="lane" x="790" y="20" width="300" height="320"/><text class="t-s" x="806" y="42">DOWNSTREAM — consumers</text>
+    <rect class="box-acc" x="810" y="58" width="260" height="48"/><text class="t-b" x="825" y="77">docs.&lt;product&gt;.com</text><text class="t-s" x="825" y="93">self-serve help center (customers, staff)</text>
+    <rect class="box-amber" x="810" y="116" width="260" height="48"/><text class="t-b" x="825" y="135">Printable PDF manual</text><text class="t-s" x="825" y="151">sales, onboarding, offline reference</text>
+    <rect class="box-teal" x="810" y="174" width="260" height="48"/><text class="t-b" x="825" y="193">Product KB → AI support assistant</text><text class="t-s" x="825" y="209">chat replies + agent drafts ground on these pages</text>
+    <rect class="box" x="810" y="232" width="260" height="48"/><text class="t-b" x="825" y="251">In-app deflection &amp; help panel</text><text class="t-s" x="825" y="267">ticket-form suggestions read the same KB</text>
+    <rect class="box-vio" x="810" y="290" width="260" height="42"/><text class="t-b" x="825" y="309">Future: AI answers citing source pages</text><text class="t-s" x="825" y="324">same-origin screenshots inline in chat</text>
+
+    <path class="flow f-acc anim" d="M670 150 C740 130 740 90 808 82"/>
+    <path class="flow f-amber anim" d="M670 170 C740 160 740 140 808 140"/>
+    <path class="flow f-teal anim" d="M670 190 C740 195 740 198 808 198"/>
+    <path class="flow f-teal anim" d="M670 205 C740 225 740 250 808 256"/>
+    <path class="flow f-vio anim-slow" d="M670 220 C745 265 740 300 808 311"/>
+  </svg></div>
+
+  <h2>Why the edges stay honest</h2>
+  <div class="grid g2">
+    <div class="card kv"><b>Upstream drift is detected, not assumed.</b> API changes surface as plan items (hash diff); UI changes surface as stale screenshots regenerated by command; vocabulary drift fails the KB export validation loudly.</div>
+    <div class="card kv"><b>Downstream is pull-only and versioned.</b> Consumers never edit the corpus in place: the site and PDF rebuild from <code>main</code>; the KB upsert is slug-keyed with server-side version history; the AI reads the KB read-only at answer time.</div>
+    <div class="card kv"><b>One writing effort, compounding returns.</b> A single well-written task page simultaneously improves the help center, the PDF, ticket deflection, and every future AI answer that grounds on it.</div>
+    <div class="card kv"><b>Product-agnostic by design.</b> Everything product-specific lives in <code>site.config.ts</code> + <code>docgen.config.json</code> + <code>.env</code> — point the framework at any product with <code>npm run init-product</code>.</div>
+  </div>
+</section>
+
+</main>
+
+<script>
+const menu = document.getElementById('menu');
+menu.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  menu.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === btn));
+  document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('on', p.id === 'tab-' + btn.dataset.tab));
+  location.hash = btn.dataset.tab;
+  window.scrollTo(0, 0);
+});
+const boot = location.hash.slice(1);
+if (boot && document.getElementById('tab-' + boot)) {
+  menu.querySelector('[data-tab="' + boot + '"]')?.click();
+}
+</script>
+</body>
+</html>

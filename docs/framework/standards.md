@@ -40,6 +40,18 @@ One-paragraph intro: what you'll accomplish and when you'd want to.
 ## Related
 ```
 
+### KB frontmatter fields
+
+Every template also carries three fields that map the page into the knowledge base (in-app help and the AI support assistant):
+
+| Field | Purpose |
+| --- | --- |
+| `category` | The KB component the page belongs to (Items, POS, Sale Invoices, …) — groups pages in the KB. |
+| `keywords` | What users actually type when searching. Include the synonyms users use, not only the product's terms — bill/invoice, label/barcode. |
+| `audience` | `vendor` or `internal` — controls whether the page is visible in the customer-facing KB. |
+
+Pages marked `audience: internal` must also set `draft: true` in their frontmatter: drafts never ship in the public production build, while the KB export still includes them with internal visibility. A test gate (`npm test`) enforces the pairing.
+
 ## Style rules
 
 - Second person ("you"), imperative steps ("Select **Save**"), present tense.
@@ -48,6 +60,7 @@ One-paragraph intro: what you'll accomplish and when you'd want to.
 - Keyboard keys in `<kbd>` tags.
 - Define jargon at first use or link its concept page.
 - Banned words in docs: `simply`, `just`, `easy`, `easily`, marketing superlatives. Vale enforces these as errors (`Docs.BannedWords`).
+- Every step must be self-contained in text — never "as shown below", "click the highlighted button", or any instruction whose meaning lives only in an image. Screenshots illustrate; text carries the meaning. Guide content is also consumed without images — by the in-app help search and by an AI support assistant that reads the text alone.
 - `:::warning` before any destructive or irreversible action.
 
 ## API reference pages

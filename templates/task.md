@@ -2,6 +2,9 @@
 title: Verb + object (for example "Invite team members")
 description: One sentence, ≤160 chars, stating the outcome the reader achieves.
 sidebar_position: 1
+category: Items          # KB component this page belongs to (Items, POS, Sale Invoices, …)
+keywords: [word, synonym, phrase]   # what users actually type when searching — include synonyms (bill/invoice, label/barcode)
+audience: vendor         # vendor | internal — controls KB visibility
 ---
 
 # Verb + object

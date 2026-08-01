@@ -1,0 +1,42 @@
+/* Slim single-line row under the doc footer — quiet by design. */
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--doc-color-border);
+  min-height: 2.4rem; /* prompt and thanks states keep the same height */
+}
+
+.prompt,
+.thanks {
+  font-size: 0.85rem;
+  color: var(--doc-color-text-muted);
+}
+
+.voteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0.35rem;
+  border: 1px solid var(--doc-color-border);
+  border-radius: var(--doc-radius-sm);
+  background: var(--doc-color-surface);
+  color: var(--doc-color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+  transition: color var(--doc-transition-fast), border-color var(--doc-transition-fast);
+}
+
+.voteBtn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.voteBtn:hover {
+  border-color: var(--doc-color-primary);
+  color: var(--doc-color-primary);
+}

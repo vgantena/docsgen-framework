@@ -2,6 +2,9 @@
 title: Troubleshooting <area> (for example "Troubleshooting sign-in")
 description: Fixes for the most common <area> problems.
 sidebar_position: 1
+category: Items          # KB component this page belongs to (Items, POS, Sale Invoices, …)
+keywords: [word, synonym, phrase]   # what users actually type when searching — include synonyms (bill/invoice, label/barcode)
+audience: vendor         # vendor | internal — controls KB visibility
 ---
 
 # Troubleshooting area

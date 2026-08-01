@@ -8,11 +8,13 @@ import Steps from '@site/src/components/Steps';
 import Expandable from '@site/src/components/Expandable';
 import Badge from '@site/src/components/Badge';
 import ApiEndpoint from '@site/src/components/ApiEndpoint';
+import Carousel from '@site/src/components/Carousel';
 
 /**
  * Global MDX scope: every component listed here is available in ALL docs
  * pages without an import line — <Card>, <Figure>, <Video>, <Steps>,
- * <Expandable>, <Badge>, <CardGrid>, <ApiEndpoint>, <Tabs>/<TabItem>.
+ * <Expandable>, <Badge>, <CardGrid>, <ApiEndpoint>, <Carousel>,
+ * <Tabs>/<TabItem>.
  */
 export default {
   ...MDXComponents,
@@ -24,6 +26,7 @@ export default {
   Expandable,
   Badge,
   ApiEndpoint,
+  Carousel,
   Tabs,
   TabItem,
 };

@@ -86,6 +86,39 @@ Same framing system for short workflow clips. `autoPlay` turns a clip into a sil
 
 Videos are produced by `npm run record` (Playwright) and converted to web-ready H.264 by ffmpeg — see [Standards](/framework/standards).
 
+## Carousel — step slideshows
+
+A user-paced step slideshow — the lightweight alternative to `Video` when a task teaches better as discrete captioned states than as motion. Readers move through the slides with the arrow buttons, the dots, or the <kbd>←</kbd> / <kbd>→</kbd> keys; each slide carries its own caption, the current slide announces itself to screen readers, and a counter keeps the position visible:
+
+<Carousel
+  frame="browser"
+  caption="A two-step slice of the add-item walkthrough — try the arrows or the arrow keys."
+  slides={[
+    {src: '/img/items/add-item-1.png', alt: 'The Items list with the Add New Item button outlined in blue in the top-right corner.', caption: 'Step 1 — Select Add New Item.'},
+    {src: '/img/items/add-item-2.png', alt: 'The Add New Item form with the required Basic Information fields outlined.', caption: 'Step 2 — Fill the Basic Information fields.'},
+  ]}
+/>
+
+```jsx
+<Carousel
+  frame="browser"
+  caption="Adding an item, step by step."
+  slides={[
+    {src: '/img/items/add-item-1.png', alt: 'The Items list with the Add New Item button outlined in blue.', caption: 'Step 1 — Select Add New Item.'},
+    {src: '/img/items/add-item-2.png', alt: 'The Add New Item form with the required fields outlined in yellow.', caption: 'Step 2 — Fill the Basic Information fields.'},
+  ]}
+/>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `slides` | array of `{src, alt, caption?}` | required | Ordered slides, one per step. `alt` is required on every slide; `caption` holds the step's instruction. |
+| `frame` | `'plain'` &#124; `'browser'` | `'browser'` | `'browser'` adds browser chrome around the slide area for app screenshots. |
+| `caption` | ReactNode | — | Overall caption under the carousel — what the sequence teaches. |
+| `width` | number &#124; string | — | Optional max width. |
+
+An empty `slides` array renders nothing, and in development a missing `alt` on any slide logs a console warning. Steps shown in a carousel must also remain self-contained in the surrounding text — see [Standards](/framework/standards).
+
 ## Steps
 
 Wrap an ordered list to get numbered circles with a connecting line:
@@ -207,3 +240,9 @@ Prefer `:::tip` for shortcuts and best practices.
 :::warning
 Use `:::warning` before destructive or irreversible actions.
 :::
+
+## Page feedback
+
+A slim "Was this page helpful?" row with thumbs-up / thumbs-down buttons appears under every doc page's footer. Unlike the components above, it isn't written into pages — the `src/theme/DocItem/Footer` wrapper mounts it automatically, so no page ever references it.
+
+The widget is config-gated and hidden by default: it renders only after `feedback.endpoint` in `site.config.ts` points at an API endpoint (for example `/api/docs-feedback`). Each vote POSTs a JSON body of `{route, helpful, ts}` to that endpoint, then the row swaps to a thank-you message. Votes are remembered per route in the browser's localStorage, so a page never asks the same reader twice. See [Configuration](/framework/configuration) for the setting.

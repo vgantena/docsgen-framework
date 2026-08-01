@@ -6,6 +6,7 @@ Reusable Docusaurus 3 help-center framework: user guides, per-endpoint API refer
 
 | Command | Purpose |
 | --- | --- |
+| `npm run doctor` | Setup validator — run FIRST after cloning and whenever tooling misbehaves; distinguishes hard failures from feature-scoped warnings with exact fix commands |
 | `npm run start -- --port 3400 --no-open` | Dev server (live reload; search is build-only) |
 | `npm run build` | Production build — also the broken-link check |
 | `npm run serve -- --port 3300 --no-open` | Serve the production build (full search works here) |
@@ -13,10 +14,16 @@ Reusable Docusaurus 3 help-center framework: user guides, per-endpoint API refer
 | `npm run lint:md` | markdownlint (structure) |
 | `npm run lint:prose` | Vale (language) — errors block (spelling, we-voice, banned house words); Microsoft-style warnings/suggestions are advisory |
 | `npm run lint:js` | ESLint over tools/ and tests/ |
-| `npm run capture -- --url <path> --out static/img/...png` | Screenshot a page (2× scale, `--highlight "#sel"`) |
-| `npm run record -- --flow tools/flows/<f>.mjs --out static/video/<name>` | Record workflow video → mp4 + auto poster JPG |
+| `npm run capture -- --url <path> --out static/img/...png` | Screenshot a page (2× scale; repeatable `--highlight "sel[::red\|yellow\|action]"` — yellow = fill-in, red = destructive, action = press-this; repeatable `--click "#sel"` for state-routed SPAs; `--storage-state auth.json` for authenticated pages) |
+| `npm run record -- --flow tools/flows/<f>.mjs --out static/video/<name> --storage-state auth.json` | Record training video → mp4 + poster; auto click-pulses; flows get a `ui` helper (`ui.click`/`ui.fill`/`ui.spotlight` = outline-then-act). Never record the login screen |
+| `npm run login` | Sign in via `tools/flows/login.mjs` (DEMO_USER/DEMO_PASS from `.env`) and save `auth.json` (gitignored) for capture/record |
+| `npm run media -- --manifest tools/media/<module>.json` | Regenerate a module's entire media set from its committed manifest (`--only screenshots\|videos`, `--filter <substring>`). ALL screenshots share the single 1280×800 frame — tall forms are split into section shots via `--scroll`, never a taller viewport |
+| `npm run media -- --manifest <m> --check` | DRIFT DETECTION: re-shoot to temp + pixel-diff against committed screenshots; exits 1 past `--drift-threshold` (default 3%). Run nightly against the dev app to catch stale docs media |
+| `npm run media:optimize` | Losslessly-visually recompress `static/img/**.png` via sharp (~50% smaller); only overwrites when >5% smaller and dimensions match. Run AFTER re-shooting, BEFORE committing |
+| `npm run audit:selectors -- --app <app-src-path>` | Verify every `data-testid` selector in media manifests + flows still exists in the app source (handles template-literal testids); exit 1 on missing |
 | `npm run pdf` | Build `build/manual.pdf` from `tools/pdf-manifest.json` |
 | `npm run docgen:plan -- --spec <openapi.json>` | Incremental docs plan: ADD/UPDATE/REVIEW/REMOVE/SKIP (see `docgen/README.md`) |
+| `npm run docgen:kb-export` | Plan (default) or `--write` upsert of KB-mapped docs pages into the product KB via the platform API — keyed by slug, hashed in `docgen/kb-manifest.json`, only changed pages push. Needs KB_USER/KB_PASS in `.env` for `--write` |
 | `npm test` | Unit tests (docgen planner) |
 | `npm run brand-assets` | Regenerate social card + favicon.ico after a re-brand |
 
@@ -29,7 +36,7 @@ Prerequisites beyond `npm install` (one-time): pandoc, typst, vale, ffmpeg — W
 - **site.config.ts** — ALL product/org-specific structure: names, URLs, navbar items (with `icon` + `activeBaseRegex`), footer links. No other file hardcodes these.
 - **src/css/tokens.css** — ALL visual design as tokens (brand ramp, layout widths, type scale, component tokens). Never hardcode a color/size in components or custom.css; add a token.
 - **src/css/custom.css** — maps tokens onto the Docusaurus theme; global element styling.
-- **src/components/** — MDX components, globally registered in `src/theme/MDXComponents.tsx` (no imports needed in docs pages): Card/CardGrid, Figure, Video, Steps, Expandable, Badge, ApiEndpoint, Tabs/TabItem.
+- **src/components/** — MDX components, globally registered in `src/theme/MDXComponents.tsx` (no imports needed in docs pages): Card/CardGrid, Figure, Video, Steps, Expandable, Badge, ApiEndpoint, Carousel (user-paced step slideshow — the lightweight alternative to Video), Tabs/TabItem.
 - **src/theme/CodeBlock/** — wrapper adding max-height + scrollbar + expand-to-fullscreen to every code block.
 - **tools/** — capture.mjs, record.mjs (+ flows/), build-pdf.mjs, pdf-manifest.json.
 - **templates/** — authoring templates: task, concept, reference, troubleshooting, **api-endpoint**.

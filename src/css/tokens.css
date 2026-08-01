@@ -94,9 +94,14 @@
   --doc-frame-chrome-dot-size: 10px;
   --doc-frame-caption-color: var(--doc-color-text-muted);
   --doc-frame-caption-size: 0.85rem;
-  /* Screenshot element-highlight color — consumed by tools/capture.mjs
-     (--highlight outline), not by any stylesheet. */
+  /* Screenshot element-highlight colors — consumed by tools/capture.mjs and
+     tools/record.mjs (element outlines + click pulses), not by any stylesheet.
+     Semantics: default = the action to take, yellow = fields to fill in,
+     red = destructive / pay-attention. */
   --doc-frame-highlight: #e5484d;
+  --doc-frame-highlight-red: #e5484d;
+  --doc-frame-highlight-yellow: #f7b500;
+  --doc-frame-highlight-action: #2f6fed;
 
   /* ── Overlays (CodeBlock expand modal + Figure lightbox share these) ── */
   --doc-scrim-bg: rgba(15, 23, 42, 0.7);

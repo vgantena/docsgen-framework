@@ -24,10 +24,23 @@ const site = {
   announcement: null,                 // or {id, content} for a site-wide banner
   navbar: {items: [{label: 'Guides', to: '/'}]},
   footer: {links: [ /* … */ ]},
+  locales: {default: 'en', all: ['en']},   // more than one entry = language dropdown
+  feedback: {endpoint: ''},                // '' hides the page-feedback widget
+  analytics: {gtagTrackingId: ''},         // '' disables Google Analytics
 };
 ```
 
 Changing `product.name` updates the browser title, header, and social metadata everywhere.
+
+### Optional integrations
+
+Three settings ship disabled — the site behaves identically until you fill them in:
+
+| Setting | Default | What a value enables |
+| --- | --- | --- |
+| `feedback.endpoint` | `''` (widget hidden) | A "Was this page helpful?" row under every doc page. Set an API endpoint, for example `'/api/docs-feedback'`; each vote POSTs JSON `{route, helpful, ts}` to it. See [Page feedback](/framework/components#page-feedback). |
+| `analytics.gtagTrackingId` | `''` (disabled) | Google Analytics via gtag.js on production builds (IP anonymization on). Set a measurement ID, for example `'G-XXXXXXXXXX'`. |
+| `locales` | `{default: 'en', all: ['en']}` | Translations. Add codes such as `'hi'` or `'te'` to `all` to get a language dropdown in the navbar, then run `npm run write-translations` to scaffold the translatable strings under `i18n/`. |
 
 ## Visual design — `src/css/tokens.css`
 

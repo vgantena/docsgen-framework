@@ -4,6 +4,11 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    # Weekly external-link sweep (the links job below) — internal links are
+    # already checked on every build via onBrokenLinks: throw.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,6 +31,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # Environment sanity first — fails only on hard breakage (Node/deps);
+      # feature warnings (no ffmpeg/pandoc on the runner) are expected here.
+      - name: Doctor (setup validation)
+        run: npm run doctor
 
       - name: Markdown structure lint
         run: npm run lint:md
@@ -118,3 +128,44 @@ jobs:
       # build-pdf.mjs uses only the Node standard library — no npm ci needed.
       - name: Build the PDF manual
         run: npm run pdf
+
+  # External links only — internal links fail the build itself. Scheduled weekly
+  # (plus manual dispatch) so third-party flakiness never blocks a PR.
+  links:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check external links in docs
+        uses: lycheeverse/lychee-action@v2.4.1
+        with:
+          args: >-
+            --no-progress --scheme https --scheme http
+            --exclude 'localhost' --exclude '127\.0\.0\.1' --exclude 'example\.com'
+            'docs/**/*.md' 'docs/**/*.mdx' 'README.md'
+          fail: true
+
+  # Lighthouse over the built site (config: lighthouserc.json). The assertion
+  # gates the ACCESSIBILITY category only (minScore 0.9 on /, the items guide,
+  # and the items API page) — performance/SEO numbers are informational.
+  a11y:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production site)
+        run: npm run build
+
+      - name: Lighthouse CI (accessibility gate)
+        run: npx --yes @lhci/cli@0.14.x autorun

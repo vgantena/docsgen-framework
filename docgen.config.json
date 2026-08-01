@@ -21,5 +21,13 @@
       },
       "output": "docs/guides"
     }
-  ]
+  ],
+  "kb": {
+    "$comment": "Knowledge-base export target (npm run docgen:kb-export). apiBasePath is prefixed to /auth/login, /kb/articles, etc. components is the product's controlled category vocabulary — page frontmatter `category` must match one of these exactly (keep in sync with the product's server-side list). Credentials live in .env (KB_BASE_URL, KB_USER, KB_PASS).",
+    "apiBasePath": "/api/platform",
+    "bodyMaxChars": 20000,
+    "components": [
+      "Dashboard", "Projects", "Workspaces", "Reports", "Users & Permissions", "Settings", "General"
+    ]
+  }
 }

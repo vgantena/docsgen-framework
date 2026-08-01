@@ -4,6 +4,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "doctor": "node tools/doctor.mjs",
+    "init-product": "node tools/init-product.mjs",
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",
@@ -16,8 +18,13 @@
     "typecheck": "tsc",
     "capture": "node tools/capture.mjs",
     "record": "node tools/record.mjs",
+    "login": "node tools/login.mjs",
+    "media": "node tools/media.mjs",
+    "media:optimize": "node tools/optimize-images.mjs",
+    "audit:selectors": "node tools/audit-selectors.mjs",
     "pdf": "node tools/build-pdf.mjs",
     "docgen:plan": "node tools/docgen-plan.mjs",
+    "docgen:kb-export": "node tools/docgen-kb-export.mjs",
     "test": "node --test \"tests/*.test.mjs\"",
     "brand-assets": "node tools/make-brand-assets.mjs",
     "lint:md": "markdownlint-cli2",
@@ -27,6 +34,7 @@
   "dependencies": {
     "@docusaurus/core": "3.10.2",
     "@docusaurus/faster": "3.10.2",
+    "@docusaurus/plugin-client-redirects": "^3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
     "@docusaurus/theme-mermaid": "^3.10.2",
     "@easyops-cn/docusaurus-search-local": "^0.55.2",
@@ -46,7 +54,10 @@
     "eslint": "^9.39.5",
     "globals": "^17.8.0",
     "markdownlint-cli2": "^0.23.1",
+    "pixelmatch": "^7.2.0",
     "playwright": "^1.62.0",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.35.3",
     "typescript": "~6.0.2"
   },
   "browserslist": {

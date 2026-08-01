@@ -35,3 +35,9 @@ static/video/**/*.webm
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Playwright auth state from 'npm run login' (contains session cookies)
+auth.json
+
+# Generated KB export plan (manifest IS committed; the plan is a per-run artifact)
+docgen/kb-plan.json

@@ -2,6 +2,9 @@
 sidebar_position: 99
 title: Verb + object (for example "Create a project")
 description: METHOD /v1/path — one-line purpose.
+category: Items          # KB component this page belongs to (Items, POS, Sale Invoices, …)
+keywords: [create item api, item endpoint, POST items]   # what developers actually type when searching — include synonyms (create/add, item/product)
+audience: vendor         # vendor | internal — controls KB visibility
 ---
 
 # Verb + object

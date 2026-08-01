@@ -5,8 +5,19 @@
  */
 import {spawnSync} from 'node:child_process';
 
+/**
+ * Quote a single argument for cmd.exe shell mode. Pure — exported for tests.
+ * Embedded double quotes are escaped as \" and the arg is wrapped in quotes
+ * whenever it contains whitespace, a quote, a percent sign, or a cmd
+ * metacharacter (&^|<>()); simple args pass through untouched.
+ */
+export function quoteForCmd(arg) {
+  const s = String(arg);
+  if (!/[\s"%&^|<>()]/.test(s)) return s;
+  return `"${s.replace(/"/g, '\\"')}"`;
+}
+
 export function run(cmd, args, opts = {}) {
   if (process.platform !== 'win32') return spawnSync(cmd, args, opts);
-  const quoted = args.map((a) => (/[\s&^|<>()]/.test(a) ? `"${a}"` : a));
-  return spawnSync(cmd, quoted, {...opts, shell: true});
+  return spawnSync(cmd, args.map(quoteForCmd), {...opts, shell: true});
 }

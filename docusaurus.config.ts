@@ -75,8 +75,8 @@ const config: Config = {
   onBrokenAnchors: 'throw',
 
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: site.locales.default,
+    locales: site.locales.all,
   },
 
   markdown: {
@@ -86,6 +86,33 @@ const config: Config = {
       onBrokenMarkdownLinks: 'throw',
     },
   },
+
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        // Renamed or moved a page? Add a redirect here so external links, KB
+        // citations, and search results keep working. Example:
+        //   {from: '/guides/managing-items', to: '/guides/items/'},
+        redirects: [],
+      },
+    ],
+    // Google Analytics — added only when site.analytics.gtagTrackingId is set,
+    // so the default ('') build carries no analytics code at all. The
+    // standalone plugin is used (rather than preset-classic's `gtag` option)
+    // because it already ships inside preset-classic's dependency tree —
+    // node_modules/@docusaurus/plugin-google-gtag resolves without adding a
+    // dependency — and keeping it here makes the wiring visible beside the
+    // other plugins. It only loads the tag on production builds.
+    ...(site.analytics.gtagTrackingId
+      ? [
+          [
+            '@docusaurus/plugin-google-gtag',
+            {trackingID: site.analytics.gtagTrackingId, anonymizeIP: true},
+          ] as [string, object],
+        ]
+      : []),
+  ],
 
   themes: [
     '@docusaurus/theme-mermaid',
@@ -165,6 +192,12 @@ const config: Config = {
           ...(item.href ? {href: item.href} : {}),
           ...(item.activeBaseRegex ? {activeBaseRegex: withBaseUrl(item.activeBaseRegex)} : {}),
         })),
+        // Language dropdown — only when site.locales.all lists more than one
+        // locale. Appended after the site.config items so it lands right of
+        // the Framework item, keeping utility controls at the far edge.
+        ...(site.locales.all.length > 1
+          ? [{type: 'localeDropdown' as const, position: 'right' as const}]
+          : []),
       ],
     },
     footer: {

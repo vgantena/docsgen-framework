@@ -1,0 +1,112 @@
+.carousel {
+  margin: 0 0 var(--ifm-leading);
+}
+
+.frameBox {
+  border: var(--doc-frame-border);
+  border-radius: var(--doc-frame-radius);
+  box-shadow: var(--doc-frame-shadow);
+  overflow: hidden;
+  background: var(--doc-color-surface);
+}
+
+/* Browser-chrome bar with three dots — same tokens Figure and Video use. */
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: var(--doc-frame-chrome-gap);
+  padding: var(--doc-frame-chrome-padding);
+  background: var(--doc-frame-chrome-bg);
+  border-bottom: 1px solid var(--doc-color-border);
+}
+
+.chrome span {
+  width: var(--doc-frame-chrome-dot-size);
+  height: var(--doc-frame-chrome-dot-size);
+  border-radius: 50%;
+  background: var(--doc-frame-chrome-dot);
+}
+
+.img {
+  display: block;
+  width: 100%;
+}
+
+/* The step's instruction, inside the frame so slide and text read as one unit. */
+.slideCaption {
+  padding: 0.6rem 1rem;
+  font-size: var(--doc-frame-caption-size);
+  color: var(--doc-color-text);
+  background: var(--doc-frame-chrome-bg);
+  border-top: 1px solid var(--doc-color-border);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0.3rem;
+  border: 1px solid var(--doc-color-border);
+  border-radius: 50%;
+  background: var(--doc-color-surface);
+  color: var(--doc-color-text);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.navBtn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.navBtn:hover:not(:disabled) {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--doc-color-border);
+  cursor: pointer;
+}
+
+.dotActive {
+  background: var(--ifm-color-primary);
+}
+
+.counter {
+  font-size: var(--doc-frame-caption-size);
+  color: var(--doc-frame-caption-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: var(--doc-frame-caption-size);
+  color: var(--doc-frame-caption-color);
+  text-align: center;
+}
