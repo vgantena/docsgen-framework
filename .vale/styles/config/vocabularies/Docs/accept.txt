@@ -22,10 +22,6 @@ SDKs?
 [Ii]dempotent
 [Mm]iddleware
 [Aa]dmin('s)?
-HSN
-MRP
-GST
-EAN
 [Tt]enants?
 [Bb]arcodes?
 [Uu]ntick
