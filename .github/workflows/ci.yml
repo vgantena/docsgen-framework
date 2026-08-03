@@ -139,7 +139,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check external links in docs
-        uses: lycheeverse/lychee-action@v2.4.1
+        uses: lycheeverse/lychee-action@v2.9.0
         with:
           args: >-
             --no-progress --scheme https --scheme http
