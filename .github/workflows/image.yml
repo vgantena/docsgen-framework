@@ -62,7 +62,7 @@ jobs:
       - uses: docker/setup-buildx-action@v3
 
       - name: Build (load locally for the smoke test)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: infra/docker/Dockerfile
@@ -134,7 +134,7 @@ jobs:
       # unhelpful error — do not reintroduce it here.
       - name: Push (merge to develop only)
         if: github.event_name == 'push'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: infra/docker/Dockerfile
