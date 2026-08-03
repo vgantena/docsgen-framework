@@ -1,7 +1,18 @@
 version: 2
+
+# target-branch is set on EVERY ecosystem below, deliberately.
+#
+# Without it dependabot opens against the repository's DEFAULT branch, which
+# here is `main` — the promoted lane. Merging a dependency bump there would put
+# `main` on a commit `develop` never built an image for, so the promote job
+# would fail (it resolves the image by commit sha) and `main` would stop
+# fast-forwarding from `develop`. Updates belong on `develop`, where they get
+# built and verified before promotion, like everything else.
+
 updates:
   - package-ecosystem: npm
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
     groups:
@@ -31,5 +42,6 @@ updates:
         update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
