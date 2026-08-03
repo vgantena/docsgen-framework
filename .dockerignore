@@ -1,0 +1,57 @@
+# Keep the build context small AND correct.
+#
+# Without this, `COPY . .` in infra/docker/Dockerfile shipped ~1.2 GB to the
+# daemon on every build (node_modules 1.1 GB + build/ + .git) — and worse, it
+# copied the HOST's node_modules over the Linux tree that `npm ci` had just
+# installed. On a Windows or macOS workstation that means platform-wrong
+# binaries inside a linux/amd64 image. It happened to work only because
+# Docusaurus is almost entirely pure JS; that is luck, not design.
+#
+# This matters more here than in most repos: the whole reason docs lives in its
+# own repo is that it will fill up with screenshots and video.
+
+node_modules
+**/node_modules
+
+# Build artefacts — the image builds its own.
+build
+.docusaurus
+out
+dist
+
+# VCS + tooling
+.git
+.gitignore
+.gitattributes
+.github
+
+# Secrets and local state. auth.json is a Playwright storage-state file with a
+# live session in it; .env holds capture/KB credentials. Neither belongs in a
+# layer that gets pushed to a registry.
+.env
+.env.*
+!.env.example
+auth.json
+
+# Editor / OS noise
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Repo meta, not site content. Named explicitly rather than `*.md`: this is a
+# DOCUMENTATION repo where .md IS the product (docs/ holds 16 of them). A bare
+# `*.md` happens to match root-level only, so it works — but it reads like it
+# excludes the entire site, and one day someone "fixes" it to `**/*.md` and
+# silently ships a site missing a third of its pages.
+CHANGELOG.md
+CONTRIBUTING.md
+CLAUDE.md
+
+# Large source artwork kept out of the shipped site
+brand-assets
+
+# Test + capture output
+test-results
+playwright-report
+tools/output

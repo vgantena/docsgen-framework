@@ -11,11 +11,11 @@ audience: vendor         # vendor | internal — controls KB visibility
 
 <ApiEndpoint method="GET" path="/v1/resource/{id}">One-line summary shown beside the path.</ApiEndpoint>
 
+<Badge variant="info">Minimum role</Badge> <Badge variant="new">Plan availability</Badge>
+
 ## Overview
 
 Two or three sentences: what the endpoint does, when to use it, and notable side effects (webhook events, cascades).
-
-<Badge variant="info">Minimum role</Badge> <Badge variant="new">Plan availability</Badge>
 
 ## Request
 
@@ -23,7 +23,7 @@ Two or three sentences: what the endpoint does, when to use it, and notable side
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | … |
+| `id` | string | Yes * | … |
 
 ### Query parameters (omit section if none)
 
@@ -35,7 +35,7 @@ Two or three sentences: what the endpoint does, when to use it, and notable side
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| … | … | Yes | … |
+| … | … | Yes * | … |
 
 ### Headers (omit section unless the endpoint has notable headers — `Content-Type` when it sends a body, `Idempotency-Key`, …)
 

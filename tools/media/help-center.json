@@ -1,0 +1,55 @@
+{
+  "$comment": "Worked example of the media pipeline. The 'app' here is THIS docs site — serve the production build and shoot it: npm run serve -- --port 3300 --no-open, then npm run media -- --manifest tools/media/help-center.json --base http://localhost:3300. Same trick tools/flows/getting-started-tour.mjs already uses for video, so the framework can demonstrate capture/record/drift/audit with no product app and no product data. Selectors are stable Docusaurus theme classes and aria-labels rather than data-testids, because the subject is the docs theme itself. NOTE: the three endpoint-page shots below target /developers/projects-api/create-project, which `npm run drop-sample` removes — after graduating, point them at one of YOUR endpoint pages and reshoot. The reshoot fails loudly on a 404 rather than silently keeping a stale image. Copy this file's shape for your own module.",
+  "module": "help-center",
+  "screenshots": [
+    {
+      "out": "static/img/help-center/browse-help-center.png",
+      "url": "/",
+      "wait": 900
+    },
+    {
+      "out": "static/img/help-center/search-docs.png",
+      "url": "/",
+      "highlights": ["input.navbar__search-input::yellow"],
+      "wait": 900
+    },
+    {
+      "out": "static/img/help-center/switch-theme.png",
+      "url": "/",
+      "highlights": ["button[aria-label*='dark and light']::action"],
+      "wait": 900
+    },
+    {
+      "out": "static/img/help-center/navigate-sidebar.png",
+      "url": "/getting-started",
+      "highlights": ["nav.menu"],
+      "wait": 900
+    },
+    {
+      "out": "static/img/help-center/read-endpoint.png",
+      "url": "/developers/projects-api/create-project",
+      "wait": 900
+    },
+    {
+      "out": "static/img/help-center/switch-sample-tabs.png",
+      "url": "/developers/projects-api/create-project",
+      "scroll": "ul.tabs",
+      "highlights": ["ul.tabs::action"],
+      "wait": 900
+    },
+    {
+      "$comment": "The code block's expand button is deliberately NOT shot here: it lives at opacity 0 until hover, and capture.mjs now refuses to outline an invisible element rather than saving a screenshot with no visible highlight. Hover-only affordances belong in a video, not a still.",
+      "out": "static/img/help-center/jump-to-section.png",
+      "url": "/developers/projects-api/create-project",
+      "highlights": ["ul.table-of-contents::action"],
+      "wait": 900
+    }
+  ],
+  "videos": [
+    {
+      "flow": "tools/flows/getting-started-tour.mjs",
+      "out": "static/video/getting-started/getting-started-tour",
+      "poster": 6
+    }
+  ]
+}

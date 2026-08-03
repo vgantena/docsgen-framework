@@ -1,0 +1,136 @@
+---
+sidebar_position: 3
+title: Invite a member
+description: POST /v1/members — invite somebody to the workspace by email address.
+---
+
+# Invite a member
+
+<ApiEndpoint method="POST" path="/v1/members">Sends a workspace invitation and returns the pending member.</ApiEndpoint>
+
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
+
+## Overview
+
+Creates a member in the `invited` state and emails an invitation link. The
+member becomes `active` when the invitation is accepted, which fires the
+`member.joined` webhook event.
+
+## Request
+
+### Body parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `email` | string | Yes * | Address to invite. Must not already belong to the workspace. |
+| `role` | string | No | `admin`, `member`, or `viewer`. Default: `member`. |
+
+### Headers
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
+| `Idempotency-Key` | Optional client-generated key; repeat requests with the same key return the original result. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="json" label="JSON">
+
+The raw request payload, independent of language:
+
+```json
+{
+  "email": "ravi@example.com",
+  "role": "member"
+}
+```
+
+</TabItem>
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X POST https://api.example.com/v1/members \
+  -H "Authorization: Bearer sk_live_4f8a…" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "ravi@example.com", "role": "member"}'
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/members"))
+    .header("Authorization", "Bearer " + apiKey)
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString(payload))
+    .build();
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+requests.post(
+    "https://api.example.com/v1/members",
+    json={"email": "ravi@example.com", "role": "member"},
+    headers={"Authorization": f"Bearer {api_key}"},
+)
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+await fetch('https://api.example.com/v1/members', {
+  method: 'POST',
+  headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json'},
+  body: JSON.stringify({email: 'ravi@example.com', role: 'member'}),
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`201 Created` — the new [member object](/developers/members-api/):
+
+```json
+{
+  "id": "mem_9Tz2k",
+  "email": "ravi@example.com",
+  "role": "member",
+  "status": "invited",
+  "joined_at": null
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Member identifier. |
+| `status` | string | `invited` until the person accepts. |
+| `joined_at` | string | `null` while the invitation is outstanding. |
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `201` | — | Invitation sent. |
+| `401` | `unauthenticated` | Missing or invalid API key. |
+| `403` | `forbidden` | The caller is not an admin. |
+| `409` | `already_member` | That address already belongs to the workspace. |
+| `422` | `validation_failed` | Malformed address, or an unknown role. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
+
+## Business rules
+
+- Only admins can invite, and only admins can grant the `admin` role.
+- Invitation links expire after 7 days. Invite again to send a fresh one.
+- Fires `member.invited` on success, and `member.joined` when accepted.
+
+## Related
+
+- [Remove a member](/developers/members-api/remove-member) — revoke access
+- [List members](/developers/members-api/list-members) — check whether an invitation is outstanding

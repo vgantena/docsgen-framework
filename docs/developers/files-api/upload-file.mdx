@@ -1,0 +1,131 @@
+---
+sidebar_position: 2
+title: Upload a file
+description: POST /v1/projects/{id}/files — attach a file to a project.
+---
+
+# Upload a file
+
+<ApiEndpoint method="POST" path="/v1/projects/{id}/files">Uploads a file and attaches it to the project.</ApiEndpoint>
+
+<Badge variant="info">Member role or higher</Badge> <Badge variant="new">Pro plan: 5 GB per project</Badge>
+
+## Overview
+
+Sends the file as `multipart/form-data` and returns the stored file object. The
+upload counts against the project's storage allowance.
+
+## Request
+
+### Path parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes * | Project identifier, for example `proj_8fK2m`. |
+
+### Body parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `file` | binary | Yes * | The file content. Maximum 100 MB per request. |
+| `name` | string | No | Override the stored name. Defaults to the uploaded file name. |
+
+### Headers
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `multipart/form-data` |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X POST https://api.example.com/v1/projects/proj_8fK2m/files \
+  -H "Authorization: Bearer sk_live_4f8a…" \
+  -F "file=@report.pdf"
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/projects/proj_8fK2m/files"))
+    .header("Authorization", "Bearer " + apiKey)
+    .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+    .POST(HttpRequest.BodyPublishers.ofByteArray(multipartBody))
+    .build();
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+with open("report.pdf", "rb") as handle:
+    requests.post(
+        "https://api.example.com/v1/projects/proj_8fK2m/files",
+        files={"file": handle},
+        headers={"Authorization": f"Bearer {api_key}"},
+    )
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+const body = new FormData();
+body.append('file', fileInput.files[0]);
+
+await fetch('https://api.example.com/v1/projects/proj_8fK2m/files', {
+  method: 'POST',
+  headers: {Authorization: `Bearer ${apiKey}`},
+  body,
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`201 Created` — the stored [file object](/developers/files-api/):
+
+```json
+{
+  "id": "file_2Bd7q",
+  "project_id": "proj_8fK2m",
+  "name": "report.pdf",
+  "size_bytes": 184320,
+  "uploaded_at": "2026-03-02T11:20:00Z"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | File identifier, used to delete it later. |
+| `size_bytes` | integer | Size the upload consumed. |
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `201` | — | Uploaded. |
+| `401` | `unauthenticated` | Missing or invalid API key. |
+| `403` | `forbidden` | Viewers cannot upload. |
+| `404` | `not_found` | No project with that id. |
+| `413` | `file_too_large` | The file is over 100 MB. |
+| `422` | `storage_exceeded` | The project is out of storage allowance. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
+
+## Business rules
+
+- Viewers can download files but cannot upload or delete them.
+- Storage is counted per project, not per workspace.
+- Uploading a file whose name already exists keeps both; names are not unique.
+
+## Related
+
+- [Delete a file](/developers/files-api/delete-file) — free the storage again
+- [Delete a project](/developers/projects-api/delete-project) — removes every file it holds

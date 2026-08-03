@@ -1,0 +1,35 @@
+---
+sidebar_position: 1
+title: Members API
+sidebar_label: Overview
+description: Workspace members, their roles, and the invitation lifecycle.
+---
+
+# Members API
+
+A member is a person with access to a workspace. Membership carries a role, and
+that role decides what the person can do in every project — see
+[Projects and workspaces](/guides/projects-and-workspaces).
+
+## The member object
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Member identifier, for example `mem_4Qp1x`. |
+| `email` | string | The address the invitation was sent to. |
+| `role` | string | `admin`, `member`, or `viewer`. |
+| `status` | string | `invited` until the invitation is accepted, then `active`. |
+| `joined_at` | string | Timestamp of acceptance, or `null` while `status` is `invited`. |
+
+## Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| [`GET /v1/members`](/developers/members-api/list-members) | List the members of a workspace. |
+| [`POST /v1/members`](/developers/members-api/invite-member) | Invite somebody by email address. |
+| [`DELETE /v1/members/{id}`](/developers/members-api/remove-member) | Revoke a member's access. |
+
+## Related
+
+- [Webhooks](/developers/webhooks) — `member.invited` and `member.joined` carry these objects
+- [Authentication](/developers/authentication) — how to authorize these calls

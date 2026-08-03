@@ -158,11 +158,27 @@ try {
 
   for (const spec of highlights) {
     const {selector, color} = parseHighlight(spec);
-    await page.locator(selector).first().evaluate((el, outlineColor) => {
+    // Outlining an element that is in the DOM but not actually VISIBLE (a
+    // hover-only control at opacity 0, a zero-size node) silently produces a
+    // screenshot with no highlight on it — the shot claims to point at
+    // something and points at nothing. Playwright counts opacity:0 as
+    // "visible", so check it here rather than with waitFor({state:'visible'}).
+    const problem = await page.locator(selector).first().evaluate((el, outlineColor) => {
+      // Reached via the element rather than the bare global: this runs in the
+      // page, but ESLint lints this file with Node globals.
+      const style = el.ownerDocument.defaultView.getComputedStyle(el);
+      const box = el.getBoundingClientRect();
       el.style.outline = `3px solid ${outlineColor}`;
       el.style.outlineOffset = '3px';
       el.style.borderRadius = '6px';
+      if (box.width === 0 || box.height === 0) return 'has no size on screen';
+      if (style.visibility === 'hidden') return 'is visibility:hidden';
+      if (Number(style.opacity) < 0.1) {
+        return `is transparent (opacity ${style.opacity}) — hover-only controls cannot be highlighted in a static screenshot`;
+      }
+      return null;
     }, color, {timeout});
+    if (problem) throw new Error(`--highlight "${selector}" ${problem}`);
   }
   if (highlights.length > 0) await page.waitForTimeout(150);
 

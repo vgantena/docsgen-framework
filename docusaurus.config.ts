@@ -149,7 +149,11 @@ const config: Config = {
   themeConfig: {
     image: site.product.socialCard,
     colorMode: {
-      respectPrefersColorScheme: true,
+      // Two states only — light and dark — starting on light. The three-state
+      // toggle (which adds "system") is off because a reader who lands in dark
+      // because of an OS setting they forgot cannot tell the site from a bug.
+      defaultMode: 'light',
+      respectPrefersColorScheme: false,
     },
     ...(site.announcement
       ? {

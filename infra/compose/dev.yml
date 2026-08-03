@@ -1,0 +1,35 @@
+# Docs site — LOCALHOST stack (builds from source, ungated).
+#
+#   docker compose -f infra/compose/dev.yml up -d --build
+#   → http://docs.localhost
+#
+# Named `dev.yml` to match the app repo's convention, where dev.yml = the
+# developer's machine and prod.yml = a VPS. The Dev VPS uses prod.yml with
+# EDGE_CONF=vps/dev.conf, so "Dev" the environment is deployed by prod.yml.
+# Confusing the first time; consistent with the stack once you know it.
+#
+# The container does NOT hot-reload — it serves a built site. For authoring use
+# `npm start` (Docusaurus dev server, live reload) and keep this for verifying
+# the real artifact: cache headers, 404 handling, the edge.
+
+name: docs-site
+
+services:
+  docs:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    image: docs-site:dev
+    restart: unless-stopped
+
+  edge:
+    image: nginx:1.27-alpine
+    volumes:
+      - ../nginx/edge-localhost.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      # If the app stack's edge already holds :80, run one or the other —
+      # or remap this to 8083:80 and use http://localhost:8083.
+      - "80:80"
+    depends_on:
+      - docs
+    restart: unless-stopped

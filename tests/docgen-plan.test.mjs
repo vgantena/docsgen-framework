@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
@@ -124,4 +124,100 @@ test('--source pointing at a non-api source fails with a clear error', () => {
   assert.equal(result.status, 1, 'planner must exit non-zero');
   assert.match(result.stderr, /type "ui"/);
   assert.match(result.stderr, /type "api"/);
+});
+
+/**
+ * The planner resolves suggested page paths against the repo root, so a
+ * collision test needs a real file in the docs tree. It creates its own rather
+ * than relying on shipped sample content — an adopted repo deletes that
+ * (npm run drop-sample), and a test must not fail because the product finally
+ * replaced the scaffolding.
+ *
+ * Tagging drives the path: "Zz Fixture" → docs/developers/zz-fixture-api/.
+ */
+const FIXTURE_DIR = 'docs/developers/zz-fixture-api';
+const FIXTURE_PAGE = `${FIXTURE_DIR}/create-widget.mdx`;
+
+const COLLIDING_SPEC = {
+  openapi: '3.0.0',
+  info: {title: 'collide', version: '1'},
+  paths: {
+    '/widgets': {
+      post: {operationId: 'createWidget', tags: ['Zz Fixture'], responses: {200: {description: 'ok'}}},
+      get: {operationId: 'listWidgets', tags: ['Zz Other'], responses: {200: {description: 'ok'}}},
+    },
+  },
+};
+
+/** Run `body` with the untracked page present, always cleaning up after. */
+function withUntrackedPage(body) {
+  mkdirSync(FIXTURE_DIR, {recursive: true});
+  writeFileSync(FIXTURE_PAGE, '---\ntitle: fixture\n---\n\nNot a real page.\n', 'utf8');
+  try {
+    return body();
+  } finally {
+    rmSync(FIXTURE_DIR, {recursive: true, force: true});
+  }
+}
+
+test('a page on disk that the manifest does not track is never planned as ADD', () => {
+  const [dir, spec] = tmpFixture('spec.json', COLLIDING_SPEC);
+  const {plan, warnings} = withUntrackedPage(() =>
+    runPlan(spec, 'docgen/examples/empty-manifest.json'),
+  );
+  rmSync(dir, {recursive: true, force: true});
+
+  assert.deepEqual(
+    plan.ADD.map((a) => a.op),
+    ['listWidgets'],
+    'only the operation with no page on disk is an ADD',
+  );
+  const [review] = plan.REVIEW;
+  assert.equal(review.op, 'createWidget');
+  assert.equal(review.page, FIXTURE_PAGE);
+  assert.equal(review.untracked, true);
+  assert.ok(
+    warnings.some((w) => w.includes('not tracked')),
+    'the collision is warned about, not silently absorbed',
+  );
+  // The old behaviour renamed past the collision; that must not come back.
+  assert.ok(
+    !plan.ADD.some((a) => /create-widget-\d+\.mdx$/.test(a.suggestedPage)),
+    'no -2 duplicate is invented beside the existing page',
+  );
+});
+
+test('--adopt registers untracked pages as humanEdited and settles the plan', () => {
+  const [dir, manifest] = tmpFixture('manifest.json', {
+    templateVersion: '1.0.0',
+    specHash: null,
+    generatedAt: null,
+    pages: {},
+  });
+  const [specDir, spec] = tmpFixture('spec.json', COLLIDING_SPEC);
+
+  const second = withUntrackedPage(() => {
+    runPlan(spec, manifest, ['--adopt']);
+
+    const written = JSON.parse(readFileSync(manifest, 'utf8'));
+    const entry = written.pages[FIXTURE_PAGE];
+    assert.ok(entry, 'the untracked page is now in the manifest');
+    assert.equal(entry.humanEdited, true, 'adopted pages are never overwritten later');
+    assert.deepEqual(entry.operations, ['createWidget']);
+    assert.deepEqual(entry.operationHashes, {}, 'no baseline is invented for an unreviewed page');
+
+    // Second run: the page is tracked, so it stops being untracked and routes
+    // to REVIEW on the honest "no baseline hash" reason instead.
+    return runPlan(spec, manifest);
+  });
+  rmSync(dir, {recursive: true, force: true});
+  rmSync(specDir, {recursive: true, force: true});
+  assert.deepEqual(
+    second.plan.ADD.map((a) => a.op),
+    ['listWidgets'],
+    'the adopted page is no longer proposed for generation',
+  );
+  assert.equal(second.plan.REVIEW.length, 1);
+  assert.ok(!second.plan.REVIEW[0].untracked, 'it is tracked now');
+  assert.match(second.plan.REVIEW[0].reason, /no baseline hash/);
 });

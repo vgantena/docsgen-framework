@@ -27,7 +27,7 @@ source repo build
 | `SKIP` | Contract hash unchanged — page is not touched (byte-identical). The consistency guarantee. |
 | `ADD` | New operation — generate a page from `templates/api-endpoint.md`. |
 | `UPDATE` | Contract changed — regenerate; AI sections are updated against their previous text for the named change, not re-rolled. |
-| `REVIEW` | Contract changed (or an operation disappeared) on a `humanEdited` page — flagged for a human instead of acted on. |
+| `REVIEW` | Contract changed (or an operation disappeared) on a `humanEdited` page, or the target page exists on disk but the manifest does not track it — flagged for a human instead of acted on. |
 | `REMOVE` | Operation gone from the spec. Scoped: `scope: "page"` only when NO other operation still uses the page; `scope: "operation"` means delete just that section — never the file. |
 
 The generation step is currently manual/AI-assisted: run the plan, then author each
@@ -62,3 +62,36 @@ removed, one untouched).
 When someone hand-rewrites generated prose, set `"humanEdited": true` for that page
 in manifest.json (same commit). The planner will route future upstream changes for
 that page to REVIEW instead of UPDATE.
+
+## Untracked pages (hand-authored docs the manifest never learned about)
+
+The manifest is the planner's only map of what exists — it does not read the docs
+tree. So a page somebody wrote by hand and never registered is invisible: the
+planner sees an operation with no page, and proposes generating one at exactly the
+path that page already occupies.
+
+The planner therefore checks the filesystem before proposing an ADD. If the target
+path is already on disk but absent from the manifest, the operation routes to
+REVIEW as `untracked` instead:
+
+```text
+REVIEW (1)
+  POST /items  →  docs/developers/items-api/create-item.mdx
+    [page exists on disk but the manifest does not track it — register it (rerun with --adopt) or delete it]
+```
+
+Register them in bulk with:
+
+```bash
+npm run docgen:plan -- --spec <spec.json> --adopt
+```
+
+`--adopt` writes each untracked page into the manifest as `humanEdited: true` with
+the matching operation and **no** recorded hashes. That is deliberate: an empty
+baseline means the next plan routes the page to REVIEW ("no baseline hash
+recorded"), which is the honest state — nobody has checked that hand-written page
+against the spec yet. Once someone has, record the hashes and it settles to SKIP.
+
+This matters most when a docs site was written before the pipeline was pointed at
+its API: without it, the first real plan proposes overwriting every hand-authored
+endpoint page at once.

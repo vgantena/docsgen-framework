@@ -1,0 +1,43 @@
+DocsGen Framework
+Copyright (c) 2026 Venkateswarlu Gantena and contributors
+
+This product includes third-party material redistributed under its own terms.
+Dependencies installed from npm are not listed here — their licenses ship in
+node_modules and are not redistributed by this repository. What follows is
+material COPIED INTO this source tree, which therefore travels with it.
+
+-------------------------------------------------------------------------------
+Lucide (https://lucide.dev) — ISC License
+
+Individual icon path data is inlined into this repository rather than imported
+as a dependency, so the notice travels with the source:
+
+  - src/components/Card/icons.tsx  (name-keyed icon registry for <Card icon="…">)
+  - docusaurus.config.ts           (NAV_ICONS, navbar item icons)
+  - static/img/logo.svg, logo-dark.svg, favicon.svg  (derived from "book-marked")
+
+  ISC License
+
+  Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part
+  of Feather (MIT). All other copyright (c) for Lucide are held by Lucide
+  Contributors 2022.
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+-------------------------------------------------------------------------------
+Vale styles
+
+The Microsoft writing style package used by `npm run lint:prose` is NOT
+committed here — .gitignore excludes .vale/styles/Microsoft, and `vale sync`
+downloads it from https://github.com/errata-ai/Microsoft (MIT) on demand. Only
+this project's own rules (.vale/styles/Docs/) are in the tree.

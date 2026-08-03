@@ -1,0 +1,99 @@
+---
+sidebar_position: 4
+title: Remove a member
+description: DELETE /v1/members/{id} — revoke a member's access to the workspace.
+---
+
+# Remove a member
+
+<ApiEndpoint method="DELETE" path="/v1/members/{id}">Revokes access and cancels any outstanding invitation.</ApiEndpoint>
+
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
+
+## Overview
+
+Removes the member from the workspace. Work they created stays where it is —
+only their access ends.
+
+:::warning
+Access ends immediately across every project in the workspace. There is no
+grace period and no undo; invite the person again to restore access.
+:::
+
+## Request
+
+### Path parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes * | Member identifier, for example `mem_4Qp1x`. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X DELETE https://api.example.com/v1/members/mem_4Qp1x \
+  -H "Authorization: Bearer sk_live_4f8a…"
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/members/mem_4Qp1x"))
+    .header("Authorization", "Bearer " + apiKey)
+    .DELETE()
+    .build();
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+requests.delete(
+    "https://api.example.com/v1/members/mem_4Qp1x",
+    headers={"Authorization": f"Bearer {api_key}"},
+)
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+await fetch('https://api.example.com/v1/members/mem_4Qp1x', {
+  method: 'DELETE',
+  headers: {Authorization: `Bearer ${apiKey}`},
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`204 No Content` — an empty body.
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `204` | — | Removed. |
+| `401` | `unauthenticated` | Missing or invalid API key. |
+| `403` | `forbidden` | The caller is not an admin. |
+| `404` | `not_found` | No member with that id in this workspace. |
+| `409` | `last_admin` | The workspace would be left with no admin. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
+
+## Business rules
+
+- A workspace keeps at least one admin, so removing the last one fails.
+- Removing a member whose invitation is outstanding cancels that invitation.
+- Projects, files, and comments the member created are retained.
+
+## Related
+
+- [Invite a member](/developers/members-api/invite-member) — restore access
+- [Projects and workspaces](/guides/projects-and-workspaces) — what each role can do

@@ -1,9 +1,43 @@
 # Normalize to LF in the repo; editors/tools may use platform endings locally.
 * text=auto eol=lf
+*.sh text eol=lf
 
-# Binary assets
+# ── Binary media ────────────────────────────────────────────────────────────
+# `binary` only tells git not to diff or munge these. It does NOT stop them
+# bloating history: git keeps every revision of a binary forever, so a 20 MB
+# walkthrough re-recorded ten times is 200 MB in every clone and every CI job,
+# permanently.
+#
+# This repo is kept separate from the application precisely so media does not
+# weigh down the application's history — which only pays off if it does not
+# weigh down THIS one either. Git LFS keeps pointers in git and bytes in LFS storage,
+# so a clone fetches only the revisions it checks out.
+#
+# ⚠ NOT ENABLED YET — the filter lines below are commented out because turning
+# LFS on after large files are already committed means REWRITING HISTORY
+# (`git lfs migrate import`), which invalidates every existing clone and open
+# PR. Do it BEFORE the first heavy commit:
+#     git lfs install
+#     git lfs migrate import --include="*.mp4,*.webm,*.mov,*.png,*.jpg,*.webp"
+#   then uncomment these and drop the plain `binary` lines.
+#
+# *.mp4  filter=lfs diff=lfs merge=lfs -text
+# *.webm filter=lfs diff=lfs merge=lfs -text
+# *.mov  filter=lfs diff=lfs merge=lfs -text
+# *.png  filter=lfs diff=lfs merge=lfs -text
+# *.jpg  filter=lfs diff=lfs merge=lfs -text
+# *.webp filter=lfs diff=lfs merge=lfs -text
+
 *.png binary
 *.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
 *.ico binary
 *.mp4 binary
 *.webm binary
+*.mov binary
+*.pdf binary
+
+# SVG is text — diffable, tiny, usually hand-edited. Keep it out of the binary set.
+*.svg -text

@@ -8,11 +8,11 @@ description: DELETE /v1/projects/{id} — permanently delete a project and its c
 
 <ApiEndpoint method="DELETE" path="/v1/projects/{id}">Permanently deletes a project and everything in it.</ApiEndpoint>
 
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
+
 ## Overview
 
 Permanently removes a project, its tasks, and its member associations. There is no undo and no recycle bin.
-
-<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
 
 :::warning
 Deletion cascades to **all tasks and files** in the project. If the data may be needed later, [archive instead](/developers/projects-api/update-project) — `PATCH /v1/projects/{id}` with `{"status": "archived"}`.
@@ -24,7 +24,7 @@ Deletion cascades to **all tasks and files** in the project. If the data may be 
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | Project identifier, for example `proj_8fK2m`. |
+| `id` | string | Yes * | Project identifier, for example `proj_8fK2m`. |
 
 ### Sample request
 

@@ -1,2 +1,4 @@
-# Route review requests. Replace with your team/handles on adoption.
-# * @your-org/docs-team
+# Route review requests. REPLACE THIS on adoption with your own team or handles,
+# e.g. `* @your-org/docs-team` — otherwise your pull requests will keep asking
+# this project's maintainer for review.
+* @vgantena

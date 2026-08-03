@@ -1,0 +1,205 @@
+# Docs site — build the site image and publish it to ghcr.
+#
+# PR             → build and smoke-test only. A pull request must never publish.
+# merge develop  → BUILD, smoke-test, push :<sha> and :develop. This is the only
+#                  job that ever builds a published image.
+# merge main     → PROMOTE: retag that exact digest as :main. Deliberately NOT a
+#                  rebuild — the Dockerfile starts from `node:22-alpine` and
+#                  `nginx:1.27-alpine`, both MOVING tags, so rebuilding the same
+#                  commit a week later can pull a patched base and produce
+#                  different bytes. The live site would then run an image no
+#                  environment ever tested. `crane tag` is registry-side: no
+#                  pull, no push, same digest, about a second.
+#
+# ⚠ PROMOTION TO main MUST BE A FAST-FORWARD from develop.
+#   The promote job looks the image up by `github.sha`. A squash or merge commit
+#   creates a NEW sha that develop never built, and the job fails loudly rather
+#   than silently promoting nothing. Fast-forward keeps main's sha identical to
+#   the develop commit whose image was verified — which is what makes
+#   "build once, promote the digest" a fact rather than a hope.
+#
+# The image is built TWICE on a develop merge — once loaded locally to
+# smoke-test, once pushed. The second build is a full cache hit, so it costs
+# seconds and publishes the bytes just proven to serve. Pushing first and
+# testing after would leave a broken image in the registry.
+name: image
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-${{ github.ref }}
+  # Supersede an in-flight PR build, but never abandon a publish half-done.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # ghcr rejects uppercase, and github.repository preserves the owner's case —
+  # so this is lowercased into $IMAGE by the first step of each job below.
+  IMAGE_REPO: ${{ github.repository }}
+
+jobs:
+  # Builds on a PR (validation) and on develop (the only publisher).
+  # NEVER on main — main promotes what develop already proved.
+  image:
+    if: github.event_name != 'push' || github.ref_name == 'develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve the image name
+        run: echo "IMAGE=ghcr.io/$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build (load locally for the smoke test)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile
+          load: true
+          tags: docs-site:smoke
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            REVISION=${{ github.sha }}
+            CREATED=${{ github.event.repository.updated_at }}
+          # Without a registry-backed cache every run reinstalls node_modules and
+          # re-runs `docusaurus build` from scratch.
+          cache-from: type=gha,scope=docs
+          cache-to: type=gha,scope=docs,mode=max
+
+      # Proves the artifact actually SERVES, which `npm run build` in ci.yml
+      # cannot: that checks the site compiles, not that nginx is wired to it.
+      - name: Smoke-test the image
+        run: |
+          set -euo pipefail
+          docker run -d --name docs-smoke -p 8080:80 docs-site:smoke
+
+          # The image has a HEALTHCHECK; wait for it rather than sleeping blind.
+          for i in $(seq 1 30); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' docs-smoke)
+            [ "$status" = "healthy" ] && break
+            [ "$status" = "unhealthy" ] && { echo "::error::container went unhealthy"; break; }
+            sleep 2
+          done
+          if [ "$(docker inspect -f '{{.State.Health.Status}}' docs-smoke)" != "healthy" ]; then
+            echo "::error::image never became healthy"
+            docker logs docs-smoke
+            exit 1
+          fi
+
+          fail=0
+          check() { # name expected actual
+            if [ "$2" = "$3" ]; then
+              echo "  ok    $1 → $3"
+            else
+              echo "  FAIL  $1 → expected $2, got $3"; fail=1
+            fi
+          }
+
+          check "/healthz body"  "ok"  "$(curl -sS http://localhost:8080/healthz)"
+          check "/ status"       "200" "$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8080/)"
+
+          # try_files must NOT fall back to index.html. If it ever does, every
+          # dead link silently returns 200 and broken navigation stops being
+          # visible — the reason site.conf has no SPA fallback.
+          check "unknown route"  "404" "$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8080/no-such-page-xyz)"
+
+          check "nosniff header" "nosniff" \
+            "$(curl -sSI http://localhost:8080/ | tr -d '\r' | awk -F': ' '/^[Xx]-[Cc]ontent-[Tt]ype-[Oo]ptions/{print $2}')"
+
+          docker rm -f docs-smoke >/dev/null
+          exit $fail
+
+      - name: Log in to ghcr
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Note the tags: `github.ref_name` is "<pr>/merge" on a pull_request and a
+      # slash is not a legal Docker tag, so it is only ever referenced on a push.
+      # Using it unguarded is a classic way to make PR image builds fail with an
+      # unhelpful error — do not reintroduce it here.
+      - name: Push (merge to develop only)
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile
+          push: true
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            REVISION=${{ github.sha }}
+            CREATED=${{ github.event.repository.updated_at }}
+          # :<sha> is the deployable, immutable tag. :develop is a moving pointer
+          # for inspection only — DOCS_IMAGE_TAG has no default precisely so
+          # that a deploy always names a fixed image.
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:develop
+          cache-from: type=gha,scope=docs
+          cache-to: type=gha,scope=docs,mode=max
+
+      - name: Summary
+        if: github.event_name == 'push'
+        run: |
+          {
+            echo "### Published \`${IMAGE}:${GITHUB_SHA}\`"
+            echo
+            echo "Deploy to the Dev VPS:"
+            echo '```bash'
+            echo "DOCS_IMAGE=${IMAGE} DOCS_IMAGE_TAG=${GITHUB_SHA} EDGE_CONF=vps/dev.conf \\"
+            echo "  docker compose -f infra/compose/prod.yml up -d"
+            echo '```'
+            echo
+            echo "Verified there? Fast-forward \`main\` to this commit and the"
+            echo "promote job retags this same digest — no rebuild."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # main = the live lane. It retags the digest develop built; it never rebuilds.
+  promote:
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: write
+    steps:
+      - name: Resolve the image name
+        run: echo "IMAGE=ghcr.io/$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - uses: imjasonh/setup-crane@v0.4
+
+      - name: Log in to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Retag the develop-built digest
+        run: |
+          set -euo pipefail
+          SRC="${IMAGE}:${GITHUB_SHA}"
+          # Fail loudly rather than silently promoting nothing. If this trips,
+          # main was squash-merged or merge-committed instead of fast-forwarded,
+          # so its sha names a commit develop never built an image for.
+          if ! crane digest "$SRC" >/dev/null 2>&1; then
+            echo "::error::${SRC} does not exist. main must be FAST-FORWARDED from develop — a squash or merge commit creates a sha that was never built."
+            exit 1
+          fi
+          crane tag "$SRC" main
+          DIGEST=$(crane digest "$SRC")
+          echo "promoted ${DIGEST} → :main"
+          {
+            echo "### Promoted \`${GITHUB_SHA}\` to the live lane"
+            echo
+            echo "\`${DIGEST}\` — the same digest Dev ran, no rebuild."
+          } >> "$GITHUB_STEP_SUMMARY"

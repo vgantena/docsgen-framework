@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- DocsGen Framework — workflow reference. Companion to ARCHITECTURE.html:
+     that page is what the system IS, this is what you DO.
+     Update in the same PR that changes a workflow. -->
+<title>DocsGen Framework — Workflows</title>
+
+<style>
+  :root{
+    --bg:#f7f9fc; --card:#ffffff; --card-2:#f1f5f9;
+    --ink:#0e1726; --ink-2:#334155; --mut:#64748b;
+    --line:#e2e8f0; --line-2:#cbd5e1;
+    --run:#2563eb; --decide:#b45309; --artifact:#0f766e;
+    --media:#7c3aed; --gate:#dc2626; --ok:#059669;
+    --code-bg:#0e1726; --code-ink:#dbe6f5;
+    --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px -12px rgba(15,23,42,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0a1120; --card:#111a2c; --card-2:#0e1626;
+      --ink:#e7eefa; --ink-2:#b7c5d9; --mut:#8598b1;
+      --line:#1e293b; --line-2:#334155;
+      --run:#60a5fa; --decide:#fbbf24; --artifact:#2dd4bf;
+      --media:#a78bfa; --gate:#f87171; --ok:#34d399;
+      --code-bg:#060c17; --code-ink:#dbe6f5;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a1120; --card:#111a2c; --card-2:#0e1626;
+    --ink:#e7eefa; --ink-2:#b7c5d9; --mut:#8598b1;
+    --line:#1e293b; --line-2:#334155;
+    --run:#60a5fa; --decide:#fbbf24; --artifact:#2dd4bf;
+    --media:#a78bfa; --gate:#f87171; --ok:#34d399;
+    --code-bg:#060c17; --code-ink:#dbe6f5;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"]{
+    --bg:#f7f9fc; --card:#ffffff; --card-2:#f1f5f9;
+    --ink:#0e1726; --ink-2:#334155; --mut:#64748b;
+    --line:#e2e8f0; --line-2:#cbd5e1;
+    --run:#2563eb; --decide:#b45309; --artifact:#0f766e;
+    --media:#7c3aed; --gate:#dc2626; --ok:#059669;
+    --code-bg:#0e1726; --code-ink:#dbe6f5;
+    --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px -12px rgba(15,23,42,.18);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation:none !important; transition:none !important} }
+
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px 96px}
+  .prose{max-width:68ch}
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  header.top{border-bottom:1px solid var(--line); background:var(--card); margin-bottom:40px}
+  .top-in{max-width:1180px; margin:0 auto; padding:44px 24px 34px}
+  .eyebrow{
+    font:600 11px/1 ui-monospace,"Cascadia Code",Consolas,monospace;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--run); margin:0 0 14px;
+  }
+  h1{
+    font-size:clamp(30px,4.2vw,44px); line-height:1.1; letter-spacing:-.022em;
+    font-weight:680; margin:0 0 14px; text-wrap:balance;
+  }
+  .lede{font-size:17px; color:var(--ink-2); margin:0; max-width:66ch}
+  .meta{
+    display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:22px;
+    font:500 12.5px/1.5 ui-monospace,"Cascadia Code",Consolas,monospace; color:var(--mut);
+  }
+
+  /* ── Jump nav ─────────────────────────────────────────── */
+  nav.jump{
+    position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line); margin-bottom:44px;
+  }
+  .jump-in{max-width:1180px; margin:0 auto; padding:10px 24px; display:flex; gap:6px; overflow-x:auto}
+  .jump-in a{
+    flex:0 0 auto; text-decoration:none; color:var(--ink-2); font-size:13px; font-weight:550;
+    padding:7px 11px; border-radius:7px; white-space:nowrap; border:1px solid transparent;
+  }
+  .jump-in a:hover{background:var(--card); border-color:var(--line); color:var(--ink)}
+  .jump-in a:focus-visible{outline:2px solid var(--run); outline-offset:2px}
+  .jump-in a .n{
+    font:600 11px/1 ui-monospace,Consolas,monospace; color:var(--mut); margin-right:7px;
+  }
+
+  /* ── Legend ───────────────────────────────────────────── */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px 26px; padding:16px 20px; margin-bottom:44px;
+    background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);
+  }
+  .legend b{
+    display:block; width:100%; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--mut); font-weight:650; margin-bottom:2px;
+  }
+  .key{display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-2)}
+  .sw{width:15px; height:15px; border-radius:4px; border:1.5px solid; flex:0 0 auto}
+  .sw.run{border-color:var(--run); background:color-mix(in srgb, var(--run) 13%, var(--card))}
+  .sw.decide{border-color:var(--decide); background:color-mix(in srgb, var(--decide) 15%, var(--card))}
+  .sw.artifact{border-color:var(--artifact); background:color-mix(in srgb, var(--artifact) 13%, var(--card))}
+  .sw.gate{border-color:var(--gate); background:color-mix(in srgb, var(--gate) 13%, var(--card))}
+
+  /* ── Chapters ─────────────────────────────────────────── */
+  section.ch{margin-bottom:60px; scroll-margin-top:70px}
+  .ch-head{display:flex; gap:16px; align-items:baseline; margin-bottom:6px}
+  .ch-num{
+    font:650 13px/1 ui-monospace,Consolas,monospace; color:var(--run);
+    border:1.5px solid var(--run); border-radius:6px; padding:5px 8px; flex:0 0 auto;
+  }
+  h2{font-size:clamp(21px,2.6vw,26px); letter-spacing:-.015em; font-weight:660; margin:0; text-wrap:balance}
+  .when{
+    font:500 12.5px/1.5 ui-monospace,"Cascadia Code",Consolas,monospace;
+    color:var(--mut); margin:0 0 14px 58px;
+  }
+  .ch p{color:var(--ink-2); margin:0 0 14px}
+  .ch p.prose{max-width:68ch}
+
+  .dia{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px; margin:22px 0; overflow-x:auto; box-shadow:var(--shadow);
+  }
+  .dia svg{display:block; min-width:640px; width:100%; height:auto}
+
+  /* SVG vocabulary — colour encodes node type, not decoration */
+  .nb{fill:var(--card); stroke:var(--line-2); stroke-width:1.5; rx:8}
+  .n-run{fill:color-mix(in srgb, var(--run) 12%, var(--card)); stroke:var(--run); stroke-width:1.5; rx:8}
+  .n-decide{fill:color-mix(in srgb, var(--decide) 14%, var(--card)); stroke:var(--decide); stroke-width:1.5; rx:8}
+  .n-art{fill:color-mix(in srgb, var(--artifact) 12%, var(--card)); stroke:var(--artifact); stroke-width:1.5; rx:8}
+  .n-gate{fill:color-mix(in srgb, var(--gate) 11%, var(--card)); stroke:var(--gate); stroke-width:1.5; rx:8}
+  .n-media{fill:color-mix(in srgb, var(--media) 12%, var(--card)); stroke:var(--media); stroke-width:1.5; rx:8}
+  .lane{fill:var(--card-2); stroke:var(--line); stroke-width:1; rx:10}
+  .t{font:550 13px system-ui,sans-serif; fill:var(--ink)}
+  .t-s{font:500 11px ui-monospace,Consolas,monospace; fill:var(--mut)}
+  .t-lane{font:650 10.5px ui-monospace,Consolas,monospace; fill:var(--mut); letter-spacing:.12em}
+  .arw{stroke:var(--line-2); stroke-width:1.8; fill:none; marker-end:url(#a)}
+  .arw-run{stroke:var(--run); stroke-width:1.8; fill:none; marker-end:url(#ar)}
+  .arw-gate{stroke:var(--gate); stroke-width:1.8; fill:none; stroke-dasharray:5 4; marker-end:url(#ag)}
+
+  /* ── Step tables ──────────────────────────────────────── */
+  .steps{width:100%; border-collapse:collapse; margin:20px 0; font-size:14px}
+  .steps th{
+    text-align:left; font:650 10.5px/1 ui-monospace,Consolas,monospace; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--mut); padding:0 14px 9px; border-bottom:1px solid var(--line);
+  }
+  .steps td{padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+  .steps tr:last-child td{border-bottom:none}
+  .steps td:first-child{
+    width:1%; white-space:nowrap; font:600 12.5px ui-monospace,Consolas,monospace; color:var(--ink);
+  }
+  .steps td b{color:var(--ink); font-weight:620}
+
+  code{
+    font:500 12.5px/1.5 ui-monospace,"Cascadia Code",Consolas,monospace;
+    background:var(--card-2); border:1px solid var(--line); border-radius:5px; padding:1px 5px;
+    color:var(--ink); white-space:nowrap;
+  }
+  pre{
+    background:var(--code-bg); color:var(--code-ink); border-radius:10px; padding:15px 17px;
+    overflow-x:auto; margin:16px 0; font-size:12.8px; line-height:1.7; border:1px solid var(--line);
+  }
+  pre code{background:none; border:none; padding:0; color:inherit; white-space:pre}
+  pre .c{color:#7d8fa9}
+
+  .note{
+    border-left:3px solid var(--decide); background:var(--card); padding:13px 17px;
+    border-radius:0 9px 9px 0; margin:18px 0; font-size:14px; color:var(--ink-2);
+  }
+  .note.hard{border-left-color:var(--gate)}
+  .note b{color:var(--ink)}
+
+  footer{border-top:1px solid var(--line); margin-top:56px; padding-top:22px; color:var(--mut); font-size:13px}
+  a{color:var(--run)}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <p class="eyebrow">DocsGen Framework</p>
+    <h1>Workflows</h1>
+    <p class="lede">
+      Seven processes, in the order you meet them: taking a copy of the framework, replacing its
+      scaffolding, writing a module, generating API reference, keeping media honest, passing the
+      gates, and shipping. Each one lists the exact commands and what fails if you skip it.
+    </p>
+    <div class="meta">
+      <span>companion to ARCHITECTURE.html — that page is what the system <em>is</em>, this is what you <em>do</em></span>
+    </div>
+  </div>
+</header>
+
+<nav class="jump" aria-label="Workflows">
+  <div class="jump-in">
+    <a href="#adopt"><span class="n">01</span>Adopt</a>
+    <a href="#graduate"><span class="n">02</span>Graduate</a>
+    <a href="#author"><span class="n">03</span>Author a module</a>
+    <a href="#api"><span class="n">04</span>API reference</a>
+    <a href="#drift"><span class="n">05</span>Media drift</a>
+    <a href="#gates"><span class="n">06</span>Quality gates</a>
+    <a href="#ship"><span class="n">07</span>Ship</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="legend">
+    <b>Diagram key</b>
+    <span class="key"><span class="sw run"></span>a command you run</span>
+    <span class="key"><span class="sw decide"></span>a decision only a human can make</span>
+    <span class="key"><span class="sw artifact"></span>something produced and committed</span>
+    <span class="key"><span class="sw gate"></span>a gate that fails loudly</span>
+  </div>
+
+  <!-- ══ 01 ADOPT ══ -->
+  <section class="ch" id="adopt">
+    <div class="ch-head"><span class="ch-num">01</span><h2>Adopt — take a copy and make it yours</h2></div>
+    <p class="when">once per product · whoever sets up the repo</p>
+    <p class="prose">
+      The framework is clone-and-own. You take a copy and edit it; there is no package to keep in
+      sync and no upstream that can change your site under you. Everything product-specific is
+      config, content, or one swappable flow file.
+    </p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 300" role="img" aria-label="Adoption flow: template to a branded, validated repo">
+        <defs>
+          <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker>
+          <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker>
+        </defs>
+
+        <rect class="n-art" x="14" y="112" width="152" height="60"/>
+        <text class="t" x="30" y="138">Use this template</text>
+        <text class="t-s" x="30" y="156">you own the result</text>
+
+        <path class="arw" d="M170 142 L206 142"/>
+
+        <rect class="n-run" x="210" y="112" width="150" height="60"/>
+        <text class="t" x="226" y="138">npm install</text>
+        <text class="t-s" x="226" y="156">then: npm run doctor</text>
+
+        <path class="arw-run" d="M364 142 L400 142"/>
+
+        <rect class="n-gate" x="404" y="98" width="176" height="88"/>
+        <text class="t" x="420" y="124">doctor</text>
+        <text class="t-s" x="420" y="142">hard fail: Node, deps</text>
+        <text class="t-s" x="420" y="158">warn: ffmpeg, vale,</text>
+        <text class="t-s" x="420" y="174">pandoc, typst</text>
+
+        <path class="arw-run" d="M584 142 L620 142"/>
+
+        <rect class="n-run" x="624" y="60" width="186" height="60"/>
+        <text class="t" x="640" y="86">init-product</text>
+        <text class="t-s" x="640" y="104">name · org · URLs</text>
+
+        <rect class="n-decide" x="624" y="132" width="186" height="60"/>
+        <text class="t" x="640" y="158">.env + login.mjs</text>
+        <text class="t-s" x="640" y="176">credentials · your app</text>
+
+        <rect class="n-run" x="624" y="204" width="186" height="60"/>
+        <text class="t" x="640" y="230">brand-assets</text>
+        <text class="t-s" x="640" y="248">logo · favicon · card</text>
+
+        <path class="arw" d="M814 90 C856 90 862 120 884 138"/>
+        <path class="arw" d="M814 162 L884 152"/>
+        <path class="arw" d="M814 234 C856 234 862 190 884 166"/>
+
+        <rect class="n-art" x="888" y="112" width="158" height="60"/>
+        <text class="t" x="902" y="138">Your docs site</text>
+        <text class="t-s" x="902" y="156">sample still present</text>
+      </svg>
+    </div>
+
+    <table class="steps">
+      <thead><tr><th>Command</th><th>What it does, and why it is in this order</th></tr></thead>
+      <tbody>
+        <tr><td>npm run doctor</td><td><b>Run this first, and whenever anything misbehaves.</b> It separates hard failures (wrong Node, missing dependencies) from feature-scoped warnings — no ffmpeg blocks only <code>npm run record</code>, nothing else. It also catches the two mistakes that waste the most time later: docgen sources still pointing at the <code>../your-api-repo</code> placeholders, and endpoint pages on disk that the manifest does not track.</td></tr>
+        <tr><td>npm run init-product</td><td>Rewrites <code>site.config.ts</code> — product name, org, deploy URL, app URL. Add <code>--fresh --yes</code> to also clear another product's module guides if you forked a downstream repo. On a fresh copy that flag is a no-op.</td></tr>
+        <tr><td>(edit) .env</td><td><code>APP_URL</code>, <code>DEMO_USER</code>/<code>DEMO_PASS</code>, and the KB credentials. Gitignored. Never real customer accounts — the media tooling photographs whatever is on screen.</td></tr>
+        <tr><td>(edit) login.mjs</td><td>About fifteen lines of Playwright that sign into <em>your</em> app. The only app-specific code in the repo, by design.</td></tr>
+        <tr><td>npm run brand-assets</td><td>Regenerates logo, favicon, and social card from the new name and the colours in <code>tokens.css</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <b>What you have now:</b> your product's branding on the framework's sample content. The
+      fictional "projects" product is still in the sidebar and still in the PDF manual. Removing it
+      is workflow 02, and it is not optional before a public deploy.
+    </div>
+  </section>
+
+  <!-- ══ 02 GRADUATE ══ -->
+  <section class="ch" id="graduate">
+    <div class="ch-head"><span class="ch-num">02</span><h2>Graduate — delete the scaffolding</h2></div>
+    <p class="when">once, after your own content exists · before the first public deploy</p>
+    <p class="prose">
+      <code>init-product --fresh</code> deliberately keeps the generic sample so the build still
+      passes — the navbar, the PDF manual, and several prose links all point into it. Nothing
+      removes it afterwards, which is how a site ends up shipping a manual about a product that does
+      not exist. <code>drop-sample</code> is the step that closes that gap.
+    </p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 260" role="img" aria-label="Graduation flow: drop-sample deletes pages, prunes manifests, and reports what a human must rewrite">
+        <rect class="n-run" x="14" y="96" width="176" height="66"/>
+        <text class="t" x="30" y="122">drop-sample --yes</text>
+        <text class="t-s" x="30" y="140">--dry-run to preview</text>
+
+        <path class="arw-run" d="M194 129 L232 129"/>
+
+        <rect class="lane" x="236" y="20" width="380" height="220"/>
+        <text class="t-lane" x="252" y="42">HANDLED AUTOMATICALLY</text>
+
+        <rect class="nb" x="252" y="56" width="348" height="42"/>
+        <text class="t" x="268" y="82">delete the sample pages</text>
+        <rect class="nb" x="252" y="106" width="348" height="42"/>
+        <text class="t" x="268" y="132">prune the PDF manifest</text>
+        <rect class="nb" x="252" y="156" width="348" height="42"/>
+        <text class="t" x="268" y="182">prune docgen + KB manifests</text>
+
+        <path class="arw" d="M620 129 L658 129"/>
+
+        <rect class="n-decide" x="662" y="60" width="212" height="66"/>
+        <text class="t" x="678" y="86">reported, not rewritten</text>
+        <text class="t-s" x="678" y="104">navbar items · prose links</text>
+
+        <rect class="n-gate" x="662" y="140" width="212" height="66"/>
+        <text class="t" x="678" y="166">npm run build</text>
+        <text class="t-s" x="678" y="184">fails until you fix them</text>
+
+        <path class="arw" d="M878 93 C910 93 916 110 944 126"/>
+        <path class="arw-gate" d="M878 173 C910 173 916 156 944 140"/>
+
+        <rect class="n-art" x="948" y="102" width="98" height="56"/>
+        <text class="t" x="964" y="128">your site</text>
+        <text class="t-s" x="964" y="146">only</text>
+      </svg>
+    </div>
+
+    <p class="prose">
+      The split is deliberate. Manifests are structured data, so the tool edits them. Prose is not —
+      a script rewriting your sentences would do more damage than the broken link it fixed. So it
+      prints every remaining reference with a file and line number and stops.
+    </p>
+
+    <pre><code>npm run drop-sample -- --dry-run   <span class="c"># see exactly what goes</span>
+npm run drop-sample -- --yes
+npm run build                     <span class="c"># the backstop: onBrokenLinks throws</span></code></pre>
+
+    <div class="note hard">
+      <b>The backstop is the build.</b> <code>onBrokenLinks: throw</code> means the site will not
+      build while a single reported link is still dangling. That is the design — you cannot forget
+      half of this workflow and ship anyway.
+    </div>
+  </section>
+
+  <!-- ══ 03 AUTHOR ══ -->
+  <section class="ch" id="author">
+    <div class="ch-head"><span class="ch-num">03</span><h2>Author a module — the training-centre loop</h2></div>
+    <p class="when">once per product module · the writer's main loop</p>
+    <p class="prose">
+      One module at a time, gates green between modules. The order matters: the media manifest comes
+      before the prose, because writing a guide around screenshots you have not taken yet produces
+      captions that do not match what the reader sees.
+    </p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 330" role="img" aria-label="Authoring loop from demo data through media and prose to the knowledge base">
+        <rect class="lane" x="14" y="16" width="512" height="298"/>
+        <text class="t-lane" x="30" y="38">MEDIA FIRST</text>
+
+        <rect class="n-decide" x="30" y="52" width="222" height="58"/>
+        <text class="t" x="46" y="76">seed demo data</text>
+        <text class="t-s" x="46" y="94">never customer records</text>
+
+        <path class="arw" d="M256 81 L288 81"/>
+
+        <rect class="n-run" x="292" y="52" width="218" height="58"/>
+        <text class="t" x="308" y="76">npm run login</text>
+        <text class="t-s" x="308" y="94">auth.json (gitignored)</text>
+
+        <path class="arw" d="M141 114 L141 142"/>
+
+        <rect class="n-art" x="30" y="146" width="222" height="58"/>
+        <text class="t" x="46" y="170">tools/media/&lt;mod&gt;.json</text>
+        <text class="t-s" x="46" y="188">the committed recipe</text>
+
+        <path class="arw" d="M256 175 L288 175"/>
+
+        <rect class="n-run" x="292" y="146" width="218" height="58"/>
+        <text class="t" x="308" y="170">npm run media</text>
+        <text class="t-s" x="308" y="188">one 1280×800 frame, @2×</text>
+
+        <path class="arw" d="M401 208 L401 236"/>
+
+        <rect class="n-run" x="292" y="240" width="218" height="58"/>
+        <text class="t" x="308" y="264">media:optimize</text>
+        <text class="t-s" x="308" y="282">~50% smaller, then commit</text>
+
+        <path class="arw-run" d="M530 165 L566 165"/>
+
+        <rect class="lane" x="570" y="16" width="476" height="298"/>
+        <text class="t-lane" x="586" y="38">THEN PROSE</text>
+
+        <rect class="n-decide" x="586" y="52" width="444" height="58"/>
+        <text class="t" x="602" y="76">write the guide from templates/</text>
+        <text class="t-s" x="602" y="94">steps self-contained in text · full alt text on every image</text>
+
+        <path class="arw" d="M808 114 L808 142"/>
+
+        <rect class="nb" x="586" y="146" width="444" height="58"/>
+        <text class="t" x="602" y="170">KB frontmatter</text>
+        <text class="t-s" x="602" y="188">category (must match vocabulary) · keywords · audience</text>
+
+        <path class="arw" d="M808 208 L808 236"/>
+
+        <rect class="n-gate" x="586" y="240" width="212" height="58"/>
+        <text class="t" x="602" y="264">six gates</text>
+        <text class="t-s" x="602" y="282">see workflow 06</text>
+
+        <rect class="n-art" x="818" y="240" width="212" height="58"/>
+        <text class="t" x="834" y="264">docgen:kb-export</text>
+        <text class="t-s" x="834" y="282">feeds the assistant</text>
+
+        <path class="arw" d="M802 269 L814 269"/>
+      </svg>
+    </div>
+
+    <table class="steps">
+      <thead><tr><th>Rule</th><th>Why it exists</th></tr></thead>
+      <tbody>
+        <tr><td>one frame size</td><td>Every screenshot is 1280×800 at 2×. A tall form becomes several section shots via <code>--scroll</code> — never a taller viewport, or the set stops looking like one product.</td></tr>
+        <tr><td>highlight colours</td><td>Yellow means fill this in, blue means press this, red means careful. They are semantic, so a reader learns them once.</td></tr>
+        <tr><td>commit the recipe</td><td>The manifest, not the screenshots, is the source of truth. After a UI change, one command re-shoots the whole module identically.</td></tr>
+        <tr><td>never film the login</td><td>Recording flows drive a real browser with real credentials. What is on screen is committed to a repository and cannot be unpublished.</td></tr>
+        <tr><td>steps stand alone</td><td>A step must make sense without its screenshot — that is what makes the page usable by a screen reader and by an AI support assistant.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══ 04 API ══ -->
+  <section class="ch" id="api">
+    <div class="ch-head"><span class="ch-num">04</span><h2>API reference — deterministic diff first, writing second</h2></div>
+    <p class="when">every time the product's OpenAPI spec changes</p>
+    <p class="prose">
+      The planner never writes prose. It reads the spec, hashes every operation together with every
+      schema it transitively uses, compares that against the provenance manifest, and tells you
+      exactly which pages need attention. A refactor that does not change the contract changes
+      nothing.
+    </p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 350" role="img" aria-label="Docgen planner: spec and manifest produce a five-action plan plus untracked pages">
+        <rect class="n-art" x="14" y="60" width="168" height="58"/>
+        <text class="t" x="30" y="84">OpenAPI spec</text>
+        <text class="t-s" x="30" y="102">per-operation hashes</text>
+
+        <rect class="n-art" x="14" y="150" width="168" height="58"/>
+        <text class="t" x="30" y="174">docgen/manifest.json</text>
+        <text class="t-s" x="30" y="192">what we already own</text>
+
+        <path class="arw" d="M186 89 C222 89 228 110 258 124"/>
+        <path class="arw" d="M186 179 C222 179 228 158 258 144"/>
+
+        <rect class="n-run" x="262" y="104" width="176" height="60"/>
+        <text class="t" x="278" y="130">docgen:plan</text>
+        <text class="t-s" x="278" y="148">deterministic, no AI</text>
+
+        <path class="arw-run" d="M442 134 L478 134"/>
+
+        <rect class="lane" x="482" y="16" width="330" height="318"/>
+        <text class="t-lane" x="498" y="38">THE PLAN</text>
+
+        <rect class="nb" x="498" y="50" width="298" height="38"/>
+        <text class="t" x="514" y="74">SKIP — byte-identical, untouched</text>
+        <rect class="n-run" x="498" y="96" width="298" height="38"/>
+        <text class="t" x="514" y="120">ADD — generate a new page</text>
+        <rect class="n-run" x="498" y="142" width="298" height="38"/>
+        <text class="t" x="514" y="166">UPDATE — contract changed</text>
+        <rect class="n-decide" x="498" y="188" width="298" height="38"/>
+        <text class="t" x="514" y="212">REVIEW — human-edited, or untracked</text>
+        <rect class="nb" x="498" y="234" width="298" height="38"/>
+        <text class="t" x="514" y="258">REMOVE — scoped: page vs section</text>
+
+        <rect class="n-decide" x="498" y="282" width="298" height="38"/>
+        <text class="t" x="514" y="306">--adopt registers untracked pages</text>
+
+        <path class="arw" d="M816 175 L852 175"/>
+
+        <rect class="n-decide" x="856" y="104" width="190" height="60"/>
+        <text class="t" x="872" y="130">author the ADDs</text>
+        <text class="t-s" x="872" y="148">templates/api-endpoint.md</text>
+
+        <rect class="n-art" x="856" y="186" width="190" height="60"/>
+        <text class="t" x="872" y="212">record the hashes</text>
+        <text class="t-s" x="872" y="230">next run: SKIP</text>
+
+        <path class="arw" d="M951 168 L951 182"/>
+      </svg>
+    </div>
+
+    <div class="note">
+      <b>Untracked pages.</b> The manifest is the planner's only map — it does not read the docs
+      tree. So a page somebody hand-wrote and never registered is invisible, and the first real plan
+      proposes generating right over it. The planner now checks the filesystem before proposing an
+      ADD and routes those to REVIEW instead. <code>--adopt</code> registers them as
+      <code>humanEdited</code> with no baseline hashes, which is the honest state: nobody has checked
+      that page against the spec yet.
+    </div>
+
+    <pre><code>npm run docgen:plan -- --spec build/openapi.json          <span class="c"># see the plan</span>
+npm run docgen:plan -- --spec build/openapi.json --adopt  <span class="c"># claim hand-written pages</span></code></pre>
+
+    <table class="steps">
+      <thead><tr><th>Guarantee</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>SKIP is sacred</td><td>An untouched operation leaves its page byte-identical. Regeneration never churns unrelated pages.</td></tr>
+        <tr><td>humanEdited wins</td><td>A page marked <code>humanEdited</code> is never overwritten. Upstream changes route to REVIEW for a person to fold in.</td></tr>
+        <tr><td>REMOVE is scoped</td><td>Only when no operation on a page survives is the page proposed for deletion; otherwise just that section goes.</td></tr>
+        <tr><td>one trigger for full regen</td><td>A <code>templateVersion</code> bump, and nothing else, marks every generated page stale on purpose.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══ 05 DRIFT ══ -->
+  <section class="ch" id="drift">
+    <div class="ch-head"><span class="ch-num">05</span><h2>Media drift — catching stale screenshots</h2></div>
+    <p class="when">nightly, unattended · plus before any release</p>
+    <p class="prose">
+      Documentation media rots silently. A screenshot keeps rendering long after the screen it
+      documents was redesigned, and a renamed <code>data-testid</code> makes capture time out with no
+      obvious cause. Two checks catch each failure mode, and neither can run on a stock CI runner —
+      one needs the running app, the other needs the app's source.
+    </p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 240" role="img" aria-label="Nightly drift detection: pixel diff against committed screenshots and selector audit against app source">
+        <rect class="n-run" x="14" y="86" width="184" height="66"/>
+        <text class="t" x="30" y="112">media-drift.yml</text>
+        <text class="t-s" x="30" y="130">nightly · ships disabled</text>
+
+        <path class="arw-run" d="M202 105 C222 105 226 86 250 74"/>
+        <path class="arw-run" d="M202 133 C222 133 226 152 250 164"/>
+
+        <rect class="nb" x="254" y="42" width="316" height="66"/>
+        <text class="t" x="270" y="68">media --check</text>
+        <text class="t-s" x="270" y="86">re-shoot to temp → pixel-diff → fail past 3%</text>
+
+        <rect class="nb" x="254" y="134" width="316" height="66"/>
+        <text class="t" x="270" y="160">audit:selectors</text>
+        <text class="t-s" x="270" y="178">every data-testid still exists in the app</text>
+
+        <path class="arw" d="M574 75 L610 75"/>
+        <path class="arw" d="M574 167 L610 167"/>
+
+        <rect class="n-decide" x="614" y="42" width="222" height="66"/>
+        <text class="t" x="630" y="68">needs the running app</text>
+        <text class="t-s" x="630" y="86">MEDIA_DRIFT_RUNNER</text>
+
+        <rect class="n-decide" x="614" y="134" width="222" height="66"/>
+        <text class="t" x="630" y="160">needs the app source</text>
+        <text class="t-s" x="630" y="178">APP_REPO</text>
+
+        <path class="arw" d="M840 75 C880 75 886 100 916 116"/>
+        <path class="arw" d="M840 167 C880 167 886 142 916 126"/>
+
+        <rect class="n-gate" x="920" y="92" width="126" height="58"/>
+        <text class="t" x="936" y="118">stale media</text>
+        <text class="t-s" x="936" y="136">reported by 9am</text>
+      </svg>
+    </div>
+
+    <div class="note">
+      <b>Both jobs ship disabled on purpose.</b> A GitHub-hosted runner cannot reach your
+      application, so a workflow that silently passed would be worse than none — it would read as
+      "media verified" when nothing was checked. Set the <code>MEDIA_DRIFT_RUNNER</code>,
+      <code>APP_URL</code>, and <code>APP_REPO</code> repository variables to switch them on.
+    </div>
+  </section>
+
+  <!-- ══ 06 GATES ══ -->
+  <section class="ch" id="gates">
+    <div class="ch-head"><span class="ch-num">06</span><h2>Quality gates — six locally, more in CI</h2></div>
+    <p class="when">before every commit · enforced again on every pull request</p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 250" role="img" aria-label="Six local gates feeding the CI matrix">
+        <rect class="lane" x="14" y="16" width="612" height="218"/>
+        <text class="t-lane" x="30" y="38">LOCAL — ALL SIX MUST PASS</text>
+
+        <rect class="n-gate" x="30" y="52" width="186" height="50"/><text class="t" x="46" y="82">lint:md</text>
+        <rect class="n-gate" x="226" y="52" width="186" height="50"/><text class="t" x="242" y="82">lint:prose (vale)</text>
+        <rect class="n-gate" x="422" y="52" width="186" height="50"/><text class="t" x="438" y="82">lint:js</text>
+        <rect class="n-gate" x="30" y="114" width="186" height="50"/><text class="t" x="46" y="144">typecheck</text>
+        <rect class="n-gate" x="226" y="114" width="186" height="50"/><text class="t" x="242" y="144">test</text>
+        <rect class="n-gate" x="422" y="114" width="186" height="50"/><text class="t" x="438" y="144">build</text>
+
+        <text class="t-s" x="30" y="196">vale: errors block · warnings and suggestions are advisory</text>
+        <text class="t-s" x="30" y="214">build is also the broken-link check — onBrokenLinks: throw</text>
+
+        <path class="arw-run" d="M630 125 L666 125"/>
+
+        <rect class="lane" x="670" y="16" width="376" height="218"/>
+        <text class="t-lane" x="686" y="38">CI ADDS</text>
+        <rect class="nb" x="686" y="52" width="344" height="40"/>
+        <text class="t" x="702" y="77">windows — the same gates on Windows</text>
+        <rect class="nb" x="686" y="100" width="344" height="40"/>
+        <text class="t" x="702" y="125">pdf — pandoc + typst build the manual</text>
+        <rect class="nb" x="686" y="148" width="344" height="40"/>
+        <text class="t" x="702" y="173">a11y — Lighthouse, accessibility ≥ 0.9</text>
+        <rect class="nb" x="686" y="196" width="344" height="26"/>
+        <text class="t-s" x="702" y="214">links — external sweep, weekly, never blocks a PR</text>
+      </svg>
+    </div>
+
+    <pre><code>npm run lint:md &amp;&amp; npm run lint:prose &amp;&amp; npm run lint:js \
+  &amp;&amp; npm run typecheck &amp;&amp; npm test &amp;&amp; npm run build</code></pre>
+
+    <p class="prose">
+      Several tests exist because something rotted silently once. The PDF manifest guard fails when a
+      chapter no longer exists; the media-reference guard fails when a page renders an image with no
+      file behind it — the build's link check never looked at <code>src</code> attributes. The
+      accessibility job asserts each of its routes is actually present in the build first, because a
+      missing route scores the 404 page and passes.
+    </p>
+  </section>
+
+  <!-- ══ 07 SHIP ══ -->
+  <section class="ch" id="ship">
+    <div class="ch-head"><span class="ch-num">07</span><h2>Ship — build once, promote the digest</h2></div>
+    <p class="when">on merge · the only path to production</p>
+    <p class="prose">
+      The image that production runs is the exact image Dev verified — not a rebuild of the same
+      commit. The base images are moving tags, so rebuilding a week later can pull a patched base and
+      produce different bytes; the live site would then run something no environment ever tested.
+    </p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1060 280" role="img" aria-label="Branch lane: feature to develop builds and publishes, main promotes the same digest">
+        <rect class="nb" x="14" y="112" width="150" height="58"/>
+        <text class="t" x="30" y="136">feature/*</text>
+        <text class="t-s" x="30" y="154">PR: build + smoke</text>
+
+        <path class="arw" d="M168 141 L204 141"/>
+
+        <rect class="n-run" x="208" y="98" width="230" height="86"/>
+        <text class="t" x="224" y="124">develop</text>
+        <text class="t-s" x="224" y="142">builds, smoke-tests, pushes</text>
+        <text class="t-s" x="224" y="158">:&lt;sha&gt; and :develop to ghcr</text>
+        <text class="t-s" x="224" y="174">the only job that publishes</text>
+
+        <path class="arw-run" d="M442 141 L478 141"/>
+
+        <rect class="n-decide" x="482" y="98" width="230" height="86"/>
+        <text class="t" x="498" y="124">main — FAST-FORWARD</text>
+        <text class="t-s" x="498" y="142">promote retags that digest</text>
+        <text class="t-s" x="498" y="158">no rebuild, registry-side</text>
+        <text class="t-s" x="498" y="174">a squash fails the job</text>
+
+        <path class="arw" d="M716 122 C752 122 758 106 788 96"/>
+        <path class="arw" d="M716 160 C752 160 758 176 788 186"/>
+
+        <rect class="n-art" x="792" y="66" width="254" height="58"/>
+        <text class="t" x="808" y="90">Dev VPS</text>
+        <text class="t-s" x="808" y="108">EDGE_CONF=vps/dev.conf · noindex</text>
+
+        <rect class="n-art" x="792" y="158" width="254" height="58"/>
+        <text class="t" x="808" y="182">PROD VPS</text>
+        <text class="t-s" x="808" y="200">same digest, different edge only</text>
+      </svg>
+    </div>
+
+    <div class="note hard">
+      <b>main must be fast-forwarded, never squash-merged.</b> The promote job finds the image by
+      commit sha. A squash or merge commit invents a sha that <code>develop</code> never built, so
+      the job fails loudly rather than silently promoting nothing. Fast-forward is what makes "the
+      image Dev verified is the image that ships" literally true instead of merely likely.
+    </div>
+
+    <pre><code>git checkout main &amp;&amp; git merge --ff-only develop &amp;&amp; git push origin main
+
+<span class="c"># then, on each VPS — the environments differ by edge config and certs, never by the image</span>
+DOCS_IMAGE=$IMAGE DOCS_IMAGE_TAG=$SHA EDGE_CONF=vps/prod.conf \
+  docker compose -f infra/compose/prod.yml up -d</code></pre>
+
+    <p class="prose">
+      Deploying elsewhere is fine too — <code>npm run build</code> produces a static
+      <code>build/</code> for any host. The containerised path exists because it also carries the
+      nginx edges, the optional "registered users only" gate, and the promote guarantee.
+    </p>
+  </section>
+
+  <footer>
+    <p>
+      DocsGen Framework — MIT for code, CC BY 4.0 for documentation and media.
+      Structure and architecture live in ARCHITECTURE.html; the day-to-day rulebook is CLAUDE.md.
+    </p>
+  </footer>
+</div>
+</body>
+</html>

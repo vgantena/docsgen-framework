@@ -1,4 +1,8 @@
-# Documentation tool stack
+# DocsGen Framework
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-lightgrey.svg)](LICENSE-docs)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg)](package.json)
 
 A **generic, product-agnostic documentation framework** built on [Docusaurus](https://docusaurus.io/). Clone it, point it at your application, and produce a production-grade help center: training-quality user guides (highlighted screenshots, walkthrough videos, step carousels), per-endpoint API reference, prose + structure linting, a printable PDF manual, an incremental docs-generation planner, and a knowledge-base export bridge for AI support assistants.
 
@@ -16,8 +20,15 @@ A **generic, product-agnostic documentation framework** built on [Docusaurus](ht
 
 ## Quickstart
 
+This is a **clone-and-own template**, not a dependency. Press
+**[Use this template](https://github.com/vgantena/docsgen-framework/generate)** on
+GitHub (or clone), and the result is yours to edit — there is no package to keep
+in sync, and no upstream that can change your site under you.
+
 ```bash
-git clone <this-repo> my-product-docs && cd my-product-docs
+# after "Use this template", or:
+git clone https://github.com/vgantena/docsgen-framework.git my-product-docs
+cd my-product-docs
 npm install
 npm run doctor     # ← validates your setup and tells you exactly what to fix
 npm run start      # dev server with live reload
@@ -62,7 +73,7 @@ Then run `npm run brand-assets` to regenerate the logo, favicon, and social card
 - New pages start from **`templates/`** (task, concept, reference, troubleshooting, api-endpoint). Writing rules live in `docs/framework/standards.md` — including the two rules that make content AI-assistant-ready: steps self-contained in text, full alt text on every image.
 - Every guide page carries three KB-mapping frontmatter fields: `category` (one of your `docgen.config.json` components), `keywords` (the words users actually type, with synonyms), `audience` (`vendor` | `internal`).
 - **Internal-only pages** (`audience: internal`) must also set `draft: true` — drafts are excluded from the public production build while the KB export still picks them up with internal visibility. A test gate enforces this pairing.
-- The repo ships **sample content** to copy from: a generic worked example (`docs/developers/projects-api/`, `docs/guides/projects-and-workspaces`) plus complete production-grade module guides (`docs/guides/items/`, `docs/guides/parties/`) showing the full media treatment. Replace them with your product's content — they are examples, not framework.
+- The repo ships **sample content** to copy from: a generic product sample (`docs/developers/projects-api/`, `docs/guides/projects-and-workspaces`) and a worked example of the full media treatment in [`docs/guides/using-the-help-center.md`](docs/guides/using-the-help-center.md) — highlighted screenshots, a carousel, and a recorded video, all regenerated from `tools/media/help-center.json` by one command. Its subject is this docs site itself, which is what lets the example ship with no product app behind it; point the manifest at your app and reshoot. Replace the sample with your product's content — it is an example, not framework.
 - Working AI-assisted? The committed **`.claude/skills/`** encode the exact workflows: `ui-guide` (document a module as a training center), `record-video`, `new-api-endpoint`, `run`.
 
 ## The media pipeline
@@ -88,7 +99,7 @@ Media lives in `static/img/<module>/` and `static/video/<module>/`, ships with t
 
 **Keeping media honest at scale:**
 
-- `npm run media -- --manifest <m> --check` — re-shoots to a temp dir and pixel-diffs against the committed screenshots; exits 1 when any shot drifts past the threshold (default 3%). Run it nightly against your dev app to catch UI changes that made docs media stale — the tool also fails loudly when the app itself is broken, which is a signal in its own right.
+- `npm run media -- --manifest <m> --check` — re-shoots to a temp dir and pixel-diffs against the committed screenshots; exits 1 when any shot drifts past the threshold (default 3%). `.github/workflows/media-drift.yml` runs this nightly (and audits `data-testid` selectors against the app source), catching UI changes that made docs media stale — the tool also fails loudly when the app itself is broken, which is a signal in its own right. Both jobs ship disabled because a GitHub-hosted runner cannot reach your app: set the `MEDIA_DRIFT_RUNNER`, `APP_URL`, and `APP_REPO` repository variables to enable them.
 - `npm run media:optimize` — recompresses every screenshot with sharp (palette PNG, visually lossless, ~50% smaller). Run it after re-shooting, before committing.
 - `npm run audit:selectors -- --app <path-to-app-src>` — verifies every `data-testid` in your manifests and flows still exists in the app source, including template-literal testids. Cheap insurance against selector rot between re-shoots.
 
@@ -134,6 +145,8 @@ npm run doctor && npm run lint:md && npm run lint:prose && npm run lint:js \
 
 `npm run build` → ship `build/` to any static host (or `npm run deploy` for GitHub Pages after setting `organizationName`/`projectName`). Before going live: set real URLs in `site.config.ts` (sitemap/canonicals/social cards use them), update `static/robots.txt`, re-run `npm run brand-assets`. Serve `/img/` and `/video/` with long-lived immutable cache headers. Media deploys with the site — same origin, no external hosts, atomic rollbacks include the images.
 
+**Want the whole thing containerized instead?** `infra/` ships a complete, product-neutral deployment: a Docusaurus→nginx image, localhost / Dev / PROD nginx edges, an optional "registered users only" auth gate, and a build-once-promote-the-digest pipeline (`.github/workflows/image.yml`) where `main` retags exactly the digest `develop` verified. Every hostname in it is an `example.com` placeholder — see [infra/DEPLOYMENT.md](infra/DEPLOYMENT.md) for what to replace.
+
 ## Repo layout
 
 ```
@@ -165,5 +178,56 @@ docgen/               planner + KB export manifests and plans
 3. Fill `.env`; rewrite `tools/flows/login.mjs` for your app; `npm run login`.
 4. Set your KB vocabulary in `docgen.config.json` (or remove the `kb` section if unused).
 5. Replace the sample content in `docs/` module by module — follow the `ui-guide` skill recipe; keep gates green between modules.
-6. `npm run docgen:kb-export -- --write` after each module if you feed an assistant.
-7. Ship `build/` — see [Production deployment](#production-deployment).
+6. **Graduate**: once your own guides and API pages exist, drop the fictional projects sample that `--fresh` deliberately left behind:
+
+   ```bash
+   npm run drop-sample -- --dry-run   # preview
+   npm run drop-sample -- --yes       # remove
+   ```
+
+   It deletes the sample pages and prunes the PDF, docgen, and KB manifests, then lists every navbar item and prose link still pointing at it. `npm run build` fails until those are rewritten — that is the backstop, so do this before your first public deploy. Skipping it is how a site ends up shipping a PDF manual about a product that does not exist.
+7. If you hand-wrote API pages before wiring the pipeline, register them so the planner never proposes generating over them: `npm run docgen:plan -- --spec <spec.json> --adopt` (see [docgen/README.md](docgen/README.md)).
+8. `npm run docgen:kb-export -- --write` after each module if you feed an assistant.
+9. Ship `build/` — see [Production deployment](#production-deployment).
+
+## Reference pages
+
+Two standalone HTML references live at the repo root — open them in a browser, no build step:
+
+| Page | Answers |
+| --- | --- |
+| [WORKFLOWS.html](WORKFLOWS.html) | **What do I do?** The seven processes end to end — adopt, graduate, author a module, generate API reference, catch media drift, pass the gates, ship — each with a flow diagram and the exact commands. |
+| [ARCHITECTURE.html](ARCHITECTURE.html) | **What is this?** How the pieces fit: sources, the generation lanes, data flow, and the four artifacts one docs tree produces. |
+
+## Contributing
+
+Issues and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md)
+for the branch lane, the quality gates, and what belongs in the framework versus
+in your own copy of it. Participation is covered by the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+Found a security problem? Do not open a public issue — see [SECURITY.md](SECURITY.md).
+
+The short version: work on a branch off `develop`, keep all six gates green, and
+ask whether a change is *product-specific* (belongs in your copy) or *generic*
+(belongs here). The framework's rule is that nothing product-specific lives in
+framework code.
+
+## License
+
+This repository is dual-licensed, the same split [Docusaurus](https://github.com/facebook/docusaurus)
+uses, because it ships both software and written content:
+
+| What | License |
+| --- | --- |
+| Source code — `src/`, `tools/`, `tests/`, `infra/`, config | [MIT](LICENSE) |
+| Documentation and media — `docs/`, `templates/`, `static/img`, `static/video` | [CC BY 4.0](LICENSE-docs) |
+
+In practice: **build whatever you like with the code**, and reuse the example
+prose and screenshots with attribution. Documentation *you* write in your own
+copy is yours — neither license reaches it.
+
+Third-party material redistributed in this tree (Lucide icon paths) is credited
+in [NOTICE](NOTICE).
+
+Copyright (c) 2026 Venkateswarlu Gantena and contributors.

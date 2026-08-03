@@ -1,8 +1,9 @@
 {
+  "$comment": "Accessibility gate over the production build. These routes are structural — they survive `init-product --fresh` and `drop-sample`, so the gate keeps working in a freshly adopted repo. Point them at YOUR highest-traffic pages once those exist. A route that does not exist scores the 404 page instead of failing, which is why CI asserts each one is present in build/ before running Lighthouse.",
   "ci": {
     "collect": {
       "staticDistDir": "build",
-      "url": ["/", "/guides/items/", "/developers/items-api/"],
+      "url": ["/", "/getting-started", "/developers/"],
       "numberOfRuns": 1
     },
     "assert": {

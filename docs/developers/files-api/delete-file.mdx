@@ -1,0 +1,98 @@
+---
+sidebar_position: 3
+title: Delete a file
+description: DELETE /v1/files/{id} — permanently delete a file.
+---
+
+# Delete a file
+
+<ApiEndpoint method="DELETE" path="/v1/files/{id}">Permanently deletes the file and frees its storage.</ApiEndpoint>
+
+<Badge variant="info">Member role or higher</Badge> <Badge variant="info">All plans</Badge>
+
+## Overview
+
+Deletes one file from its project. The storage allowance is credited back
+immediately.
+
+:::warning
+There is no recycle bin. A deleted file cannot be recovered — download it first
+if you may need it later.
+:::
+
+## Request
+
+### Path parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes * | File identifier, for example `file_2Bd7q`. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl -X DELETE https://api.example.com/v1/files/file_2Bd7q \
+  -H "Authorization: Bearer sk_live_4f8a…"
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/files/file_2Bd7q"))
+    .header("Authorization", "Bearer " + apiKey)
+    .DELETE()
+    .build();
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+requests.delete(
+    "https://api.example.com/v1/files/file_2Bd7q",
+    headers={"Authorization": f"Bearer {api_key}"},
+)
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+await fetch('https://api.example.com/v1/files/file_2Bd7q', {
+  method: 'DELETE',
+  headers: {Authorization: `Bearer ${apiKey}`},
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`204 No Content` — an empty body.
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `204` | — | Deleted. |
+| `401` | `unauthenticated` | Missing or invalid API key. |
+| `403` | `forbidden` | Viewers cannot delete files. |
+| `404` | `not_found` | No file with that id, or it was already deleted. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
+
+## Business rules
+
+- Deletion is immediate and permanent; there is no retention window.
+- Storage is credited back to the project as soon as the call returns.
+- Any member role or higher can delete a file, including files somebody else uploaded.
+
+## Related
+
+- [Upload a file](/developers/files-api/upload-file) — add a replacement
+- [Files API](/developers/files-api/) — the file object and its fields
