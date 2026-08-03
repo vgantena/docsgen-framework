@@ -90,10 +90,21 @@ for (const file of walk(resolve('docs'))) {
     });
 }
 
-const navbarHits = readFileSync(resolve('site.config.ts'), 'utf8')
-  .split(/\r?\n/)
-  .map((line, i) => ({line: line.trim(), n: i + 1}))
-  .filter(({line}) => SAMPLE_ROUTES.some((route) => line.includes(route)));
+/** Config files that address the sample by route (site.config.ts) or by doc id
+ *  and directory (sidebars.ts). Both forms are checked: a sidebar entry reads
+ *  `developers/projects-api/index`, with no leading slash, so matching routes
+ *  alone silently missed it — and a sidebar pointing at a deleted doc is a HARD
+ *  build failure ("Invalid sidebar file"), not a broken link. */
+const CONFIG_FILES = ['site.config.ts', 'sidebars.ts'];
+
+const configHits = CONFIG_FILES.filter((file) => existsSync(resolve(file))).flatMap((file) =>
+  readFileSync(resolve(file), 'utf8')
+    .split(/\r?\n/)
+    .map((line, i) => ({file, line: line.trim(), n: i + 1}))
+    .filter(({line}) =>
+      SAMPLE_ROUTES.some((route) => line.includes(route) || line.includes(route.slice(1))),
+    ),
+);
 
 /* ── Delete ─────────────────────────────────────────────────────────── */
 
@@ -149,9 +160,10 @@ const chapters = existsSync(resolve('tools/pdf-manifest.json'))
   : [];
 
 console.log('');
-if (navbarHits.length) {
-  console.log('site.config.ts still points at removed pages — repoint these:');
-  for (const {line, n} of navbarHits) console.log(`  site.config.ts:${n}  ${line}`);
+if (configHits.length) {
+  console.log('Config still points at removed pages — repoint these FIRST:');
+  for (const {file, line, n} of configHits) console.log(`  ${file}:${n}  ${line}`);
+  console.log('  (a sidebars.ts entry for a deleted doc fails the build outright)');
   console.log('');
 }
 if (inbound.length) {
