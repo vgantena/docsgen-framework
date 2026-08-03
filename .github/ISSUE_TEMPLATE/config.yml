@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup problem
+    url: https://github.com/vgantena/docsgen-framework#quick-start
+    about: Run `npm run doctor` first — it diagnoses most setup issues and prints the fix.
+  - name: Security vulnerability
+    url: https://github.com/vgantena/docsgen-framework/security/advisories/new
+    about: Report privately. Please do not open a public issue for a security problem.
+  - name: Question or idea
+    url: https://github.com/vgantena/docsgen-framework/discussions
+    about: For usage questions and open-ended ideas, start a discussion.

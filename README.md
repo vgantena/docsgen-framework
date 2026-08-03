@@ -1,4 +1,8 @@
-# Documentation tool stack
+# DocsGen Framework
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-lightgrey.svg)](LICENSE-docs)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg)](package.json)
 
 A **generic, product-agnostic documentation framework** built on [Docusaurus](https://docusaurus.io/). Clone it, point it at your application, and produce a production-grade help center: training-quality user guides (highlighted screenshots, walkthrough videos, step carousels), per-endpoint API reference, prose + structure linting, a printable PDF manual, an incremental docs-generation planner, and a knowledge-base export bridge for AI support assistants.
 
@@ -16,8 +20,15 @@ A **generic, product-agnostic documentation framework** built on [Docusaurus](ht
 
 ## Quickstart
 
+This is a **clone-and-own template**, not a dependency. Press
+**[Use this template](https://github.com/vgantena/docsgen-framework/generate)** on
+GitHub (or clone), and the result is yours to edit — there is no package to keep
+in sync, and no upstream that can change your site under you.
+
 ```bash
-git clone <this-repo> my-product-docs && cd my-product-docs
+# after "Use this template", or:
+git clone https://github.com/vgantena/docsgen-framework.git my-product-docs
+cd my-product-docs
 npm install
 npm run doctor     # ← validates your setup and tells you exactly what to fix
 npm run start      # dev server with live reload
@@ -178,3 +189,36 @@ docgen/               planner + KB export manifests and plans
 7. If you hand-wrote API pages before wiring the pipeline, register them so the planner never proposes generating over them: `npm run docgen:plan -- --spec <spec.json> --adopt` (see [docgen/README.md](docgen/README.md)).
 8. `npm run docgen:kb-export -- --write` after each module if you feed an assistant.
 9. Ship `build/` — see [Production deployment](#production-deployment).
+
+## Contributing
+
+Issues and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md)
+for the branch lane, the quality gates, and what belongs in the framework versus
+in your own copy of it. Participation is covered by the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+Found a security problem? Do not open a public issue — see [SECURITY.md](SECURITY.md).
+
+The short version: work on a branch off `develop`, keep all six gates green, and
+ask whether a change is *product-specific* (belongs in your copy) or *generic*
+(belongs here). The framework's rule is that nothing product-specific lives in
+framework code.
+
+## License
+
+This repository is dual-licensed, the same split [Docusaurus](https://github.com/facebook/docusaurus)
+uses, because it ships both software and written content:
+
+| What | License |
+| --- | --- |
+| Source code — `src/`, `tools/`, `tests/`, `infra/`, config | [MIT](LICENSE) |
+| Documentation and media — `docs/`, `templates/`, `static/img`, `static/video` | [CC BY 4.0](LICENSE-docs) |
+
+In practice: **build whatever you like with the code**, and reuse the example
+prose and screenshots with attribution. Documentation *you* write in your own
+copy is yours — neither license reaches it.
+
+Third-party material redistributed in this tree (Lucide icon paths) is credited
+in [NOTICE](NOTICE).
+
+Copyright (c) 2026 Venkateswarlu Gantena and contributors.

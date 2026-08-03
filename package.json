@@ -1,8 +1,31 @@
 {
-  "name": "documentation-tool-stack",
+  "name": "docsgen-framework",
   "version": "0.1.0",
+  "description": "A reusable Docusaurus 3 help-center framework: user guides, per-endpoint API reference, screenshot and video tooling, prose and structure linting, an incremental docs-generation pipeline, and a printable PDF manual.",
+  "//": "private: this is a clone-and-own TEMPLATE repository, not an npm package. Adopters press 'Use this template' (or clone) and own the result — see the adoption checklist in README.md. Releases are git tags, not npm versions.",
   "private": true,
   "license": "MIT",
+  "author": "Venkateswarlu Gantena <vgantena@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vgantena/docsgen-framework.git"
+  },
+  "homepage": "https://github.com/vgantena/docsgen-framework#readme",
+  "bugs": {
+    "url": "https://github.com/vgantena/docsgen-framework/issues"
+  },
+  "keywords": [
+    "docusaurus",
+    "documentation",
+    "docs-as-code",
+    "help-center",
+    "api-reference",
+    "openapi",
+    "technical-writing",
+    "screenshots",
+    "playwright",
+    "vale"
+  ],
   "scripts": {
     "doctor": "node tools/doctor.mjs",
     "init-product": "node tools/init-product.mjs",
