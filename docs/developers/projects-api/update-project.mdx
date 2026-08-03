@@ -8,11 +8,11 @@ description: PATCH /v1/projects/{id} — rename a project, archive it, or restor
 
 <ApiEndpoint method="PATCH" path="/v1/projects/{id}">Renames, archives, or restores a project.</ApiEndpoint>
 
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
+
 ## Overview
 
 Applies a partial update to a project. This is also the safe alternative to [deletion](/developers/projects-api/delete-project): archiving makes a project read-only while keeping all of its data, and archived projects can be restored at any time. On a status change, a [webhook event](/developers/webhooks) fires: `project.archived` on archive, `project.restored` on restore.
-
-<Badge variant="admin">Admin role</Badge> <Badge variant="info">All plans</Badge>
 
 ## Request
 
@@ -20,7 +20,7 @@ Applies a partial update to a project. This is also the safe alternative to [del
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | Project identifier, for example `proj_8fK2m`. |
+| `id` | string | Yes * | Project identifier, for example `proj_8fK2m`. |
 
 ### Body parameters
 

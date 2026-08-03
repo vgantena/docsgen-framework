@@ -63,8 +63,13 @@
   --doc-nav-height: 3.75rem;
 
   /* ── Header (navbar) ── */
-  --doc-nav-bg: color-mix(in srgb, var(--doc-color-bg) 88%, transparent);
-  --doc-nav-blur: 10px;              /* frosted-glass strength; 0 to disable */
+  /* OPAQUE on purpose. A translucent sticky header lets the page scroll
+     visibly behind the navigation labels, and no amount of blur makes body
+     text under a menu item readable. For frosted glass instead, set this to
+     `color-mix(in srgb, var(--doc-color-bg) 88%, transparent)` and give
+     --doc-nav-blur a non-zero value — then check a long page mid-scroll. */
+  --doc-nav-bg: var(--doc-color-bg);
+  --doc-nav-blur: 0px;               /* frosted-glass strength; 0 = opaque */
   --doc-nav-accent: linear-gradient(90deg, var(--doc-color-primary), var(--doc-color-accent));
   --doc-brand-word1: var(--doc-color-text);      /* first word of the product name */
   --doc-brand-word2: var(--doc-color-primary);   /* remaining words */

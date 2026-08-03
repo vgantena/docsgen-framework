@@ -70,6 +70,8 @@ Start from `templates/api-endpoint.md` and follow it exactly:
 - **One page per endpoint**, under `docs/developers/<resource>-api/` — never append endpoints to a shared page.
 - **Section order is fixed**: Overview (with role and plan `<Badge>` chips) → Request → Response → Status and error codes → Business rules.
 - **Sample request tabs** use `<Tabs groupId="lang">` so the reader's language choice syncs site-wide. Tab order: **JSON payload first** (when the endpoint has a body), then curl, Java, Python, JavaScript.
+- **Role and plan badges sit directly under the `<ApiEndpoint>` line**, above Overview — "what this endpoint is" and "who may call it" belong in the same block, and a reader deciding whether an endpoint is available to them should not have to read a paragraph first.
+- **Required parameters are marked `Yes *`** in the Required column. The asterisk is the scannable signal; the word carries the meaning for screen readers and for the plain-text knowledge-base export.
 - **Response** includes a `Field | Type | Description` schema table, with a lead-in link to the shared object definition.
 - **Every error row carries a machine-readable code slug** (`validation_failed`, `rate_limited`, `server_error`, …) matching the [error format](/developers/#errors).
 - When you add an endpoint, **update the endpoints table on the resource's index page** (for example [Projects API](/developers/projects-api/)).

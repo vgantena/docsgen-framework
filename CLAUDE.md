@@ -55,7 +55,7 @@ Prerequisites beyond `npm install` (one-time): pandoc, typst, vale, ffmpeg — W
 
 - Writing rules live in `docs/framework/standards.md` (docs speak to "you", sentence-case headings, banned words: "simply/just/easy", `:::warning` before destructive actions). Spaced em-dashes ( — ) are house style (Microsoft.Dashes disabled).
 - New pages start from a template in `templates/`. New project terms go in `.vale/styles/config/vocabularies/Docs/accept.txt` (regex per line, case handled like `[Ww]ebhooks?`).
-- **API reference**: ONE page per endpoint under `docs/developers/<resource>-api/`, following `templates/api-endpoint.md` exactly: Overview (+role/plan badges) → Request (params tables; Sample request tabs with **JSON payload first**, then curl/Java/Python/JavaScript, `groupId="lang"`) → Response (+schema table) → Status and error codes (with machine-readable code slugs) → Business rules. Update the resource index endpoints table when adding one.
+- **API reference**: ONE page per endpoint under `docs/developers/<resource>-api/`, following `templates/api-endpoint.md` exactly: `<ApiEndpoint>` line → role/plan badges (directly beneath it, so "what this is" and "who may call it" read as one block) → Overview → Request (params tables; Sample request tabs with **JSON payload first**, then curl/Java/Python/JavaScript, `groupId="lang"`) → Response (+schema table) → Status and error codes (with machine-readable code slugs) → Business rules. Update the resource index endpoints table when adding one.
 - Media: screenshots via `npm run capture` (name files `verb-object.png` under `static/img/<section>/`), videos via `npm run record` — embed with `<Video src poster>` using the auto-generated poster.
 
 ## Docs-generation pipeline (incremental)
