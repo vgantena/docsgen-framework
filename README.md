@@ -88,7 +88,7 @@ Media lives in `static/img/<module>/` and `static/video/<module>/`, ships with t
 
 **Keeping media honest at scale:**
 
-- `npm run media -- --manifest <m> --check` — re-shoots to a temp dir and pixel-diffs against the committed screenshots; exits 1 when any shot drifts past the threshold (default 3%). Run it nightly against your dev app to catch UI changes that made docs media stale — the tool also fails loudly when the app itself is broken, which is a signal in its own right.
+- `npm run media -- --manifest <m> --check` — re-shoots to a temp dir and pixel-diffs against the committed screenshots; exits 1 when any shot drifts past the threshold (default 3%). `.github/workflows/media-drift.yml` runs this nightly (and audits `data-testid` selectors against the app source), catching UI changes that made docs media stale — the tool also fails loudly when the app itself is broken, which is a signal in its own right. Both jobs ship disabled because a GitHub-hosted runner cannot reach your app: set the `MEDIA_DRIFT_RUNNER`, `APP_URL`, and `APP_REPO` repository variables to enable them.
 - `npm run media:optimize` — recompresses every screenshot with sharp (palette PNG, visually lossless, ~50% smaller). Run it after re-shooting, before committing.
 - `npm run audit:selectors -- --app <path-to-app-src>` — verifies every `data-testid` in your manifests and flows still exists in the app source, including template-literal testids. Cheap insurance against selector rot between re-shoots.
 
@@ -134,6 +134,8 @@ npm run doctor && npm run lint:md && npm run lint:prose && npm run lint:js \
 
 `npm run build` → ship `build/` to any static host (or `npm run deploy` for GitHub Pages after setting `organizationName`/`projectName`). Before going live: set real URLs in `site.config.ts` (sitemap/canonicals/social cards use them), update `static/robots.txt`, re-run `npm run brand-assets`. Serve `/img/` and `/video/` with long-lived immutable cache headers. Media deploys with the site — same origin, no external hosts, atomic rollbacks include the images.
 
+**Want the whole thing containerized instead?** `infra/` ships a complete, product-neutral deployment: a Docusaurus→nginx image, localhost / Dev / PROD nginx edges, an optional "registered users only" auth gate, and a build-once-promote-the-digest pipeline (`.github/workflows/image.yml`) where `main` retags exactly the digest `develop` verified. Every hostname in it is an `example.com` placeholder — see [infra/DEPLOYMENT.md](infra/DEPLOYMENT.md) for what to replace.
+
 ## Repo layout
 
 ```
@@ -165,5 +167,14 @@ docgen/               planner + KB export manifests and plans
 3. Fill `.env`; rewrite `tools/flows/login.mjs` for your app; `npm run login`.
 4. Set your KB vocabulary in `docgen.config.json` (or remove the `kb` section if unused).
 5. Replace the sample content in `docs/` module by module — follow the `ui-guide` skill recipe; keep gates green between modules.
-6. `npm run docgen:kb-export -- --write` after each module if you feed an assistant.
-7. Ship `build/` — see [Production deployment](#production-deployment).
+6. **Graduate**: once your own guides and API pages exist, drop the fictional projects sample that `--fresh` deliberately left behind:
+
+   ```bash
+   npm run drop-sample -- --dry-run   # preview
+   npm run drop-sample -- --yes       # remove
+   ```
+
+   It deletes the sample pages and prunes the PDF, docgen, and KB manifests, then lists every navbar item and prose link still pointing at it. `npm run build` fails until those are rewritten — that is the backstop, so do this before your first public deploy. Skipping it is how a site ends up shipping a PDF manual about a product that does not exist.
+7. If you hand-wrote API pages before wiring the pipeline, register them so the planner never proposes generating over them: `npm run docgen:plan -- --spec <spec.json> --adopt` (see [docgen/README.md](docgen/README.md)).
+8. `npm run docgen:kb-export -- --write` after each module if you feed an assistant.
+9. Ship `build/` — see [Production deployment](#production-deployment).

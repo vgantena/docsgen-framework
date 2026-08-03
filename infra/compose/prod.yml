@@ -1,0 +1,36 @@
+# Docs site — VPS stack (Dev VPS and PROD VPS both use this file).
+#
+#   Dev VPS : DOCS_IMAGE_TAG=<sha> EDGE_CONF=vps/dev.conf  docker compose -f infra/compose/prod.yml up -d
+#   PROD VPS: DOCS_IMAGE_TAG=<sha> EDGE_CONF=vps/prod.conf docker compose -f infra/compose/prod.yml up -d
+#
+# BUILD ONCE, PROMOTE THE DIGEST. `DOCS_IMAGE_TAG` is required with no
+# default on purpose: a `:latest` here would mean the thing verified on Dev and
+# the thing serving PROD are only probably the same image. The two environments
+# differ by EDGE_CONF and the cert mount — never by the docs image.
+#
+# This is a SEPARATE tag from the app stack's APP_IMAGE_TAG. Docs ships on its
+# own cadence from its own repo (media-heavy history, deliberately kept out of
+# the app repo), so "the stack" is now two promoted artifacts rather than one.
+# Each is still promoted by digest; there is just more than one of them.
+
+name: docs-site
+
+services:
+  docs:
+    image: ${DOCS_IMAGE:?set DOCS_IMAGE (e.g. ghcr.io/your-org/your-docs-repo)}:${DOCS_IMAGE_TAG:?set DOCS_IMAGE_TAG}
+    restart: unless-stopped
+
+  edge:
+    image: nginx:1.27-alpine
+    volumes:
+      - ../nginx/${EDGE_CONF:?set EDGE_CONF (vps/dev.conf | vps/prod.conf)}:/etc/nginx/conf.d/default.conf:ro
+      # The gate is include'd by BOTH VPS confs from inside their server block.
+      - ../nginx/auth-gate.conf:/etc/nginx/snippets/docs-auth-gate.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - docs
+    restart: unless-stopped

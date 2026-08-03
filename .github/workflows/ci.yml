@@ -3,7 +3,10 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # develop is the integration branch (features branch from it and merge back);
+    # main is the promoted lane. Both are gated — main only ever fast-forwards
+    # from develop, but running here keeps that assumption honest.
+    branches: [develop, main]
   schedule:
     # Weekly external-link sweep (the links job below) — internal links are
     # already checked on every build via onBrokenLinks: throw.
@@ -22,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -77,9 +80,9 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -104,9 +107,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -136,10 +139,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check external links in docs
-        uses: lycheeverse/lychee-action@v2.4.1
+        uses: lycheeverse/lychee-action@v2.9.0
         with:
           args: >-
             --no-progress --scheme https --scheme http
@@ -154,9 +157,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -166,6 +169,24 @@ jobs:
 
       - name: Build (production site)
         run: npm run build
+
+      # A route that does not exist in build/ silently scores the 404 page, so
+      # the gate would pass while testing nothing. Fail loudly instead.
+      - name: Assert every Lighthouse route exists in the build
+        run: |
+          node -e "
+            const {existsSync} = require('fs');
+            const urls = require('./lighthouserc.json').ci.collect.url;
+            const missing = urls.filter((u) => {
+              const base = 'build' + u.replace(/\/\$/, '');
+              return !existsSync(base + '/index.html') && !existsSync(base + '.html');
+            });
+            if (missing.length) {
+              console.error('lighthouserc.json points at routes that are not in the build: ' + missing.join(', '));
+              process.exit(1);
+            }
+            console.log('all ' + urls.length + ' Lighthouse routes exist');
+          "
 
       - name: Lighthouse CI (accessibility gate)
         run: npx --yes @lhci/cli@0.14.x autorun

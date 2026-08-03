@@ -30,3 +30,18 @@ EAN
 [Bb]arcodes?
 [Uu]ntick
 [Rr]estock
+
+# ── Ordinary technical English the Microsoft dictionary lacks ──────────────
+# Add YOUR product name, org name and domain terms below this block. Keep the
+# regex form (case handled like [Ww]ebhooks?) so both cases are accepted.
+[Bb]oolean
+[Ss]ubstring
+[Ll]ookups?
+[Ww]alkthroughs?
+[Dd]eduplicated
+[Dd]eletable
+[Ss]tackable
+[Uu]ncategori[sz]ed
+[Aa]nonymi[sz]ation
+[Rr]ebrand(ed|ing)?
+localStorage

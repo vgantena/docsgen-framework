@@ -125,3 +125,79 @@ test('--source pointing at a non-api source fails with a clear error', () => {
   assert.match(result.stderr, /type "ui"/);
   assert.match(result.stderr, /type "api"/);
 });
+
+/**
+ * A spec operation whose generated path collides with a page that already
+ * exists in the repo (docs/developers/projects-api/create-project.mdx) but that
+ * the manifest does not track. Tagging drives the path: "Projects" → projects-api/.
+ */
+const COLLIDING_SPEC = {
+  openapi: '3.0.0',
+  info: {title: 'collide', version: '1'},
+  paths: {
+    '/projects': {
+      post: {operationId: 'createProject', tags: ['Projects'], responses: {200: {description: 'ok'}}},
+    },
+    '/widgets': {
+      get: {operationId: 'listWidgets', tags: ['Widgets'], responses: {200: {description: 'ok'}}},
+    },
+  },
+};
+
+test('a page on disk that the manifest does not track is never planned as ADD', () => {
+  const [dir, spec] = tmpFixture('spec.json', COLLIDING_SPEC);
+  const {plan, warnings} = runPlan(spec, 'docgen/examples/empty-manifest.json');
+  rmSync(dir, {recursive: true, force: true});
+
+  assert.deepEqual(
+    plan.ADD.map((a) => a.op),
+    ['listWidgets'],
+    'only the operation with no page on disk is an ADD',
+  );
+  const [review] = plan.REVIEW;
+  assert.equal(review.op, 'createProject');
+  assert.equal(review.page, 'docs/developers/projects-api/create-project.mdx');
+  assert.equal(review.untracked, true);
+  assert.ok(
+    warnings.some((w) => w.includes('not tracked')),
+    'the collision is warned about, not silently absorbed',
+  );
+  // The old behaviour renamed past the collision; that must not come back.
+  assert.ok(
+    !plan.ADD.some((a) => /create-project-\d+\.mdx$/.test(a.suggestedPage)),
+    'no -2 duplicate is invented beside the existing page',
+  );
+});
+
+test('--adopt registers untracked pages as humanEdited and settles the plan', () => {
+  const [dir, manifest] = tmpFixture('manifest.json', {
+    templateVersion: '1.0.0',
+    specHash: null,
+    generatedAt: null,
+    pages: {},
+  });
+  const [specDir, spec] = tmpFixture('spec.json', COLLIDING_SPEC);
+
+  runPlan(spec, manifest, ['--adopt']);
+
+  const written = JSON.parse(readFileSync(manifest, 'utf8'));
+  const entry = written.pages['docs/developers/projects-api/create-project.mdx'];
+  assert.ok(entry, 'the untracked page is now in the manifest');
+  assert.equal(entry.humanEdited, true, 'adopted pages are never overwritten later');
+  assert.deepEqual(entry.operations, ['createProject']);
+  assert.deepEqual(entry.operationHashes, {}, 'no baseline is invented for an unreviewed page');
+
+  // Second run: the page is tracked, so it stops being untracked and routes to
+  // REVIEW on the honest "no baseline hash" reason instead.
+  const second = runPlan(spec, manifest);
+  rmSync(dir, {recursive: true, force: true});
+  rmSync(specDir, {recursive: true, force: true});
+  assert.deepEqual(
+    second.plan.ADD.map((a) => a.op),
+    ['listWidgets'],
+    'the adopted page is no longer proposed for generation',
+  );
+  assert.equal(second.plan.REVIEW.length, 1);
+  assert.ok(!second.plan.REVIEW[0].untracked, 'it is tracked now');
+  assert.match(second.plan.REVIEW[0].reason, /no baseline hash/);
+});
