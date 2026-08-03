@@ -8,11 +8,11 @@ description: GET /v1/projects/{id} — fetch a single project by id.
 
 <ApiEndpoint method="GET" path="/v1/projects/{id}">Returns one project by id.</ApiEndpoint>
 
+<Badge variant="info">Member role or higher</Badge> <Badge variant="info">All plans</Badge>
+
 ## Overview
 
 Fetches the current state of a single project. Use it to refresh one record instead of re-listing everything — for example after receiving a webhook event.
-
-<Badge variant="info">Member role or higher</Badge> <Badge variant="info">All plans</Badge>
 
 ## Request
 
@@ -20,7 +20,7 @@ Fetches the current state of a single project. Use it to refresh one record inst
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | Project identifier, for example `proj_8fK2m`. |
+| `id` | string | Yes * | Project identifier, for example `proj_8fK2m`. |
 
 ### Sample request
 

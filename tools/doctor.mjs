@@ -10,8 +10,8 @@
  * warnings (optional tooling, pending rebrand) exit 0 so CI setup steps can
  * gate on real breakage only.
  */
-import {existsSync, readFileSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {existsSync, readdirSync, readFileSync} from 'node:fs';
+import {join, resolve} from 'node:path';
 import {run} from './lib/spawn.mjs';
 import {readSiteConfig} from './lib/site-config.mjs';
 
@@ -107,6 +107,60 @@ if (docgenConfig) {
     }
   } else {
     warn('KB export config', 'no "kb" section in docgen.config.json — docgen:kb-export is disabled until the product vocabulary is configured');
+  }
+
+  // ── Do the configured sources actually point somewhere? ──
+  // Counting sources says nothing: a repo that shipped with the framework's
+  // ../your-api-repo placeholders looks identical to a configured one.
+  const sources = docgenConfig.sources ?? [];
+  const badSources = [];
+  for (const source of sources) {
+    if (!source.repo) continue;
+    if (/your-[a-z-]*repo/.test(source.repo)) {
+      badSources.push(`${source.id} → ${source.repo} (framework placeholder)`);
+    } else if (!existsSync(resolve(source.repo))) {
+      badSources.push(`${source.id} → ${source.repo} (path not found)`);
+    }
+  }
+  if (badSources.length) {
+    warn('docgen sources', `${badSources.join('; ')} — docgen:plan cannot extract until these point at real repos`);
+  } else if (sources.length) {
+    ok('docgen sources', `${sources.length} source path(s) resolve`);
+  }
+
+  // ── Manifest ↔ docs tree ──
+  // The planner reads only the manifest, so a page it does not track is a page
+  // it may propose generating over. Surface both directions of the mismatch.
+  let manifest = null;
+  try {
+    manifest = JSON.parse(readFileSync(resolve('docgen/manifest.json'), 'utf8'));
+  } catch {
+    /* optional until the pipeline is wired up */
+  }
+  if (manifest?.pages) {
+    const tracked = new Set(Object.keys(manifest.pages));
+    const dangling = [...tracked].filter((page) => !existsSync(resolve(page)));
+    const untracked = [];
+    for (const source of sources) {
+      if (source.type !== 'api' || !source.output || !existsSync(resolve(source.output))) continue;
+      // The repo standard is one page per endpoint under <output>/<resource>-api/.
+      for (const entry of readdirSync(resolve(source.output), {withFileTypes: true})) {
+        if (!entry.isDirectory() || !entry.name.endsWith('-api')) continue;
+        for (const file of readdirSync(join(resolve(source.output), entry.name))) {
+          if (!/\.mdx?$/.test(file) || file.startsWith('index.')) continue;
+          const page = `${source.output}/${entry.name}/${file}`;
+          if (!tracked.has(page)) untracked.push(page);
+        }
+      }
+    }
+    const notes = [];
+    if (untracked.length) notes.push(`${untracked.length} endpoint page(s) untracked (fix: npm run docgen:plan -- --spec <spec> --adopt)`);
+    if (dangling.length) notes.push(`${dangling.length} tracked page(s) no longer on disk`);
+    if (notes.length) {
+      warn('docgen manifest', `${notes.join('; ')} — e.g. ${[...untracked, ...dangling][0]}`);
+    } else {
+      ok('docgen manifest', `${tracked.size} page(s) tracked`);
+    }
   }
 }
 

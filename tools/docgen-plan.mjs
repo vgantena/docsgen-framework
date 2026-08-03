@@ -14,6 +14,14 @@
  *     --manifest  Manifest path (default docgen/manifest.json) — used by tests.
  *     --write     Also write the machine-readable plan (default docgen/plan.json).
  *     --out       Where --write puts the plan.
+ *     --adopt     Register untracked pages (see below) into the manifest as
+ *                 humanEdited, so they stop being planned as ADD.
+ *
+ * Untracked pages: a page that already exists on disk at the path an operation
+ * would generate to, but that the manifest knows nothing about, is hand-authored
+ * content. Planning it as ADD would propose writing over someone's work, so it
+ * is routed to REVIEW instead — the planner never generates over a file it does
+ * not own.
  *
  * Change detection is per-operation: each operation is hashed together with
  * every $ref it (transitively) uses, so a schema change marks exactly the
@@ -21,7 +29,7 @@
  * contract changes nothing.
  */
 import {createHash} from 'node:crypto';
-import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, resolve} from 'node:path';
 
 const args = {};
@@ -196,25 +204,51 @@ const suggestPage = (opId, op) => {
   // Prefer resource-scoped paths (per the repo standard docs/developers/<resource>-api/)
   // using the operation's first OpenAPI tag when available.
   const tag = op.tags?.[0] ? `${kebab(op.tags[0])}-api/` : '';
-  let candidate = `${source.output}/${tag}${kebab(opId)}.mdx`;
+  const first = `${source.output}/${tag}${kebab(opId)}.mdx`;
+
+  // On disk but absent from the manifest → hand-authored content the planner
+  // does not own. Report it as untracked rather than renaming past it: writing
+  // create-item-2.mdx beside a perfectly good create-item.mdx helps nobody.
+  if (!suggested.has(first) && existsSync(resolve(first))) {
+    suggested.add(first);
+    return {page: first, untracked: true};
+  }
+
+  let candidate = first;
   let n = 2;
-  while (suggested.has(candidate)) {
+  while (suggested.has(candidate) || existsSync(resolve(candidate))) {
     candidate = candidate.replace(/(-\d+)?\.mdx$/, `-${n}.mdx`);
     warnings.push(`suggested page collision for "${opId}" — using ${candidate}`);
     n++;
   }
   suggested.add(candidate);
-  return candidate;
+  return {page: candidate, untracked: false};
 };
 
 for (const [opId, op] of Object.entries(specOps)) {
   const page = opToPage[opId];
   if (!page) {
+    const {page: target, untracked} = suggestPage(opId, op);
+    if (untracked) {
+      warnings.push(
+        `${target} already exists but is not tracked in ${manifestPath} — not planning it as ADD`,
+      );
+      plan.REVIEW.push({
+        op: opId,
+        endpoint: `${op.method} ${op.path}`,
+        page: target,
+        hash: op.hash,
+        untracked: true,
+        reason:
+          'page exists on disk but the manifest does not track it — register it (rerun with --adopt) or delete it',
+      });
+      continue;
+    }
     plan.ADD.push({
       op: opId,
       endpoint: `${op.method} ${op.path}`,
       hash: op.hash,
-      suggestedPage: suggestPage(opId, op),
+      suggestedPage: target,
     });
     continue;
   }
@@ -308,4 +342,37 @@ if (args.write) {
   mkdirSync(dirname(resolve(outPath)), {recursive: true});
   writeFileSync(resolve(outPath), JSON.stringify(out, null, 2) + '\n', 'utf8');
   console.log(`\nWrote ${outPath}`);
+}
+
+/* ── --adopt: take ownership of untracked pages ─────────────────────── */
+
+if (args.adopt) {
+  const untracked = plan.REVIEW.filter((entry) => entry.untracked);
+  if (!untracked.length) {
+    console.log('\n--adopt: nothing to adopt — every planned page is already tracked.');
+  } else {
+    for (const entry of untracked) {
+      const existing = manifest.pages[entry.page];
+      if (existing) {
+        existing.operations = [...new Set([...(existing.operations ?? []), entry.op])];
+        existing.humanEdited = true;
+      } else {
+        // No recorded hashes: the next run routes the page to REVIEW ("no
+        // baseline hash recorded"), which is the honest state — nobody has
+        // checked this hand-written page against the spec yet.
+        manifest.pages[entry.page] = {
+          source: source.id,
+          operations: [entry.op],
+          operationHashes: {},
+          sourceFiles: {},
+          humanEdited: true,
+          generatedAt: null,
+        };
+      }
+    }
+    writeFileSync(resolve(manifestPath), JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+    console.log(`\nAdopted ${untracked.length} untracked page(s) into ${manifestPath} as humanEdited:`);
+    for (const entry of untracked) console.log(`  ${entry.page}  ←  ${entry.op}`);
+    console.log('Rerun the planner to see the settled plan.');
+  }
 }

@@ -8,11 +8,11 @@ description: POST /v1/projects — create a project, subject to role and plan li
 
 <ApiEndpoint method="POST" path="/v1/projects">Creates an active project and returns it.</ApiEndpoint>
 
+<Badge variant="admin">Admin role</Badge> <Badge variant="info">Free plan: 3 active projects max</Badge>
+
 ## Overview
 
 Creates a project in the key's workspace and returns the full object. The caller's key must have the Admin role. On success a `project.created` [webhook event](/developers/webhooks) fires.
-
-<Badge variant="admin">Admin role</Badge> <Badge variant="info">Free plan: 3 active projects max</Badge>
 
 ## Request
 
@@ -20,7 +20,7 @@ Creates a project in the key's workspace and returns the full object. The caller
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `name` | string | Yes | Display name, 1–120 characters. Unique within the workspace (case-insensitive). |
+| `name` | string | Yes * | Display name, 1–120 characters. Unique within the workspace (case-insensitive). |
 
 ### Headers
 

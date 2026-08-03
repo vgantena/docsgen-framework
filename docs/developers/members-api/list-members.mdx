@@ -1,0 +1,113 @@
+---
+sidebar_position: 2
+title: List members
+description: GET /v1/members — list the members of a workspace.
+---
+
+# List members
+
+<ApiEndpoint method="GET" path="/v1/members">Lists workspace members, newest invitation first.</ApiEndpoint>
+
+<Badge variant="info">Member role or higher</Badge> <Badge variant="info">All plans</Badge>
+
+## Overview
+
+Returns every member of the caller's workspace, including people whose
+invitation is still outstanding. Results are paginated with a cursor.
+
+## Request
+
+### Query parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | string | No | Filter by `invited` or `active`. Default: both. |
+| `limit` | integer | No | Page size, 1–100. Default: 25. |
+| `cursor` | string | No | `next_cursor` value from a previous response. |
+
+### Sample request
+
+<Tabs groupId="lang">
+<TabItem value="curl" label="curl">
+
+```bash
+curl "https://api.example.com/v1/members?status=active" \
+  -H "Authorization: Bearer sk_live_4f8a…"
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/v1/members?status=active"))
+    .header("Authorization", "Bearer " + apiKey)
+    .GET()
+    .build();
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+requests.get(
+    "https://api.example.com/v1/members",
+    params={"status": "active"},
+    headers={"Authorization": f"Bearer {api_key}"},
+)
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
+await fetch('https://api.example.com/v1/members?status=active', {
+  headers: {Authorization: `Bearer ${apiKey}`},
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Response
+
+`200 OK` — a page of [member objects](/developers/members-api/):
+
+```json
+{
+  "data": [
+    {
+      "id": "mem_4Qp1x",
+      "email": "ravi@example.com",
+      "role": "admin",
+      "status": "active",
+      "joined_at": "2026-02-11T09:14:00Z"
+    }
+  ],
+  "next_cursor": null
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data` | array | Member objects for this page. |
+| `next_cursor` | string | Pass as `cursor` for the next page, or `null` at the end. |
+
+## Status and error codes
+
+| Status | Code | When |
+| --- | --- | --- |
+| `200` | — | Success. |
+| `401` | `unauthenticated` | Missing or invalid API key. |
+| `422` | `validation_failed` | `limit` outside 1–100, or an unknown `status`. |
+| `5xx` | `server_error` | Server problem — retry with exponential backoff. |
+
+## Business rules
+
+- Viewers see the member list, but email addresses are redacted for them.
+- An invitation nobody accepts expires after 7 days and leaves this list.
+
+## Related
+
+- [Invite a member](/developers/members-api/invite-member) — add somebody to the workspace
+- [Webhooks](/developers/webhooks) — react to `member.joined` instead of polling here

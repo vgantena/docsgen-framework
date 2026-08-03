@@ -67,6 +67,12 @@ for (const [pattern, value, label] of edits) {
 if (!dryRun && applied > 0) writeFileSync(configPath, config);
 
 // ── Optional: clear the worked-example content ──
+// These are the module guides a DOWNSTREAM repo accumulates (the shape the
+// ui-guide skill produces). A fresh clone of the framework has none of them, so
+// --fresh is a no-op here; it earns its keep when re-adopting a repo that
+// already carries another product's guides. The framework's own media example
+// (docs/guides/using-the-help-center.md + static/img/help-center) is NOT listed:
+// it documents this site, not a product, and the component showcase renders it.
 const WORKED_EXAMPLE = [
   'docs/guides/items',
   'docs/guides/parties',

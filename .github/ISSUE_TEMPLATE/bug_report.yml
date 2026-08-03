@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in the framework or its tooling does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: run `npm run doctor`. It checks every prerequisite and
+        configuration surface and prints the exact fix for most setup problems.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you got instead.
+      placeholder: |
+        I ran `npm run media -- --manifest tools/media/help-center.json`.
+        I expected 7 screenshots. Every shot failed with a timeout instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands, in order. A repo we can clone beats a description.
+      placeholder: |
+        1. npm ci
+        2. npm run build
+        3. npm run serve -- --port 3300 --no-open
+        4. npm run media -- --manifest … --base http://localhost:3300
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `npm run doctor`
+      description: Paste it as-is. It rules out most environment causes in one step.
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: OS and Node version
+      placeholder: "Windows 11, Node 22.11.0"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I ran `npm run doctor` and addressed any hard failures it reported.
+          required: true
+        - label: This is about the framework itself, not about a product I documented with it.
+          required: true
+        - label: I have not pasted credentials, session cookies, or `auth.json` contents.
+          required: true

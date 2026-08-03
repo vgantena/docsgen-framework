@@ -122,13 +122,9 @@ const site = {
         activeBaseRegex: '^/developers/webhooks(/|$)',
         icon: 'webhook',
       },
-      {
-        label: 'Framework',
-        to: '/framework',
-        position: 'right',
-        activeBaseRegex: '^/framework(/|$)',
-        icon: 'layers',
-      },
+      // No Framework item: the framework's own manual is reachable from the
+      // footer ("Component library") and by search, and it competed for
+      // attention with the product sections a reader actually came for.
     ] as NavItem[],
   },
 

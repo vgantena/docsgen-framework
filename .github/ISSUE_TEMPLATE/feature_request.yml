@@ -1,0 +1,54 @@
+name: Feature request
+description: Propose a capability the framework should have.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you hitting?
+      description: >
+        Describe the situation, not the solution. What are you trying to
+        document, and where does the framework get in the way?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+      description: If you have a command or config shape in mind, sketch it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What did you try instead?
+      description: Workarounds you used, and why they were not enough.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the framework?
+      options:
+        - Content standards, templates, or components
+        - Screenshot and video pipeline
+        - Docs-generation pipeline (planner, manifest, KB export)
+        - Linting and quality gates
+        - Build, deployment, or CI
+        - Theming and design tokens
+        - Something else
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: >
+            This belongs in the framework rather than in one product's copy of it —
+            it is not specific to the product I happen to be documenting.
+          required: true

@@ -1,0 +1,98 @@
+name: Media drift
+
+# Docs media rots silently. A screenshot keeps rendering long after the screen
+# it documents was redesigned, and a renamed data-testid makes capture/record
+# time out with no obvious cause. Both checks need something CI cannot provide
+# on its own — a running product app, and the app's source — so both jobs ship
+# DISABLED and turn on when the repository variables below are set:
+#
+#   MEDIA_DRIFT_RUNNER  runner label that can reach the product app
+#                       (Settings → Secrets and variables → Actions → Variables)
+#   APP_URL             where that app is
+#   APP_REPO            owner/name of the product app repo (selector audit)
+#
+# Secrets: DEMO_USER / DEMO_PASS for authenticated pages, and APP_REPO_TOKEN
+# when the app repo is private.
+
+on:
+  schedule:
+    # Nightly, well after the working day — drift shows up in the morning.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: media-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Re-shoot every committed screenshot against the live app and pixel-diff it
+  # against what is in the repo. Fails past --drift-threshold (default 3%).
+  drift:
+    if: vars.MEDIA_DRIFT_RUNNER != ''
+    runs-on: ${{ vars.MEDIA_DRIFT_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    env:
+      APP_URL: ${{ vars.APP_URL }}
+      DEMO_USER: ${{ secrets.DEMO_USER }}
+      DEMO_PASS: ${{ secrets.DEMO_PASS }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sign in to the product app
+        if: env.DEMO_USER != ''
+        run: npm run login
+
+      - name: Check every media manifest for drift
+        run: |
+          shopt -s nullglob
+          manifests=(tools/media/*.json)
+          if [ ${#manifests[@]} -eq 0 ]; then
+            echo "No media manifests in tools/media — nothing to check."
+            exit 0
+          fi
+          status=0
+          for manifest in "${manifests[@]}"; do
+            echo "::group::$manifest"
+            npm run media -- --manifest "$manifest" --check || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+  # Every data-testid the manifests and flows address must still exist in the
+  # app. This one needs no running app, only its source.
+  selectors:
+    if: vars.APP_REPO != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check out the product app source
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.APP_REPO }}
+          token: ${{ secrets.APP_REPO_TOKEN || github.token }}
+          path: .app-source
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit media selectors against the app source
+        run: npm run audit:selectors -- --app .app-source

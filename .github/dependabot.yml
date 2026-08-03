@@ -8,6 +8,27 @@ updates:
       docusaurus:
         patterns:
           - "@docusaurus/*"
+    # These three majors were each opened, reviewed and closed: every one needs
+    # a code change rather than a merge, and none is a security fix — dependabot
+    # alerts are separate, so everything it opens here is a routine version
+    # update.
+    #
+    #   typescript 7   removes `baseUrl`; tsconfig.json fails to compile until
+    #                  it is rewritten (TS5102).
+    #   eslint 10      must move together with @eslint/js 10 or `npm ci` fails
+    #   @eslint/js 10  ERESOLVE — dependabot split one change into two PRs that
+    #                  are each unmergeable alone.
+    #
+    # Ignoring the MAJOR only: minor and patch updates still come through, so
+    # these stay maintained. Take the majors deliberately, as one PR that does
+    # the tsconfig and flat-config work — not as a weekly reminder.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
