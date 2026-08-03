@@ -308,9 +308,10 @@
 }
 
 /* The line reads as structure, not decoration — it brightens for the section
-   the reader is actually inside. */
-.theme-doc-sidebar-menu .menu__list-item-collapsible--active + .menu__list,
-.theme-doc-sidebar-menu .menu__list:hover {
+   the reader is actually inside. Deliberately NOT on :hover: the lists nest, so
+   hovering one endpoint lit up every ancestor line at once, which read as the
+   sidebar flickering rather than as feedback. */
+.theme-doc-sidebar-menu .menu__list-item-collapsible--active + .menu__list {
   border-left-color: var(--doc-color-primary);
 }
 
