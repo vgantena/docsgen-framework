@@ -190,6 +190,15 @@ docgen/               planner + KB export manifests and plans
 8. `npm run docgen:kb-export -- --write` after each module if you feed an assistant.
 9. Ship `build/` — see [Production deployment](#production-deployment).
 
+## Reference pages
+
+Two standalone HTML references live at the repo root — open them in a browser, no build step:
+
+| Page | Answers |
+| --- | --- |
+| [WORKFLOWS.html](WORKFLOWS.html) | **What do I do?** The seven processes end to end — adopt, graduate, author a module, generate API reference, catch media drift, pass the gates, ship — each with a flow diagram and the exact commands. |
+| [ARCHITECTURE.html](ARCHITECTURE.html) | **What is this?** How the pieces fit: sources, the generation lanes, data flow, and the four artifacts one docs tree produces. |
+
 ## Contributing
 
 Issues and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md)
