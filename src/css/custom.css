@@ -202,10 +202,19 @@
 
 /* Search box: visible surface + focus ring instead of the flat default. */
 .navbar__search-input {
+  width: var(--doc-nav-search-width);
   background-color: var(--doc-nav-search-bg);
   border: 1px solid var(--doc-color-border);
   border-radius: 999px;
   transition: border-color var(--doc-transition-fast), box-shadow var(--doc-transition-fast);
+}
+
+/* Below the navbar breakpoint the search collapses into the drawer, where a
+   fixed width would overflow it. */
+@media (max-width: 996px) {
+  .navbar__search-input {
+    width: 100%;
+  }
 }
 
 .navbar__search-input:focus {
@@ -283,6 +292,26 @@
 
 .menu__link--active {
   font-weight: 600;
+}
+
+/* Indent guides: a hairline connecting every nested list back to its parent
+   section, so a reader three levels deep (API Doc → Members API → an endpoint)
+   can see which resource they are inside. Drawn on the nested <ul> itself
+   rather than per item, so it spans exactly the group's height. */
+/* `.theme-doc-sidebar-menu` is itself a `.menu__list`, so this matches every
+   nested list — one level down and deeper — rather than only grandchildren. */
+.theme-doc-sidebar-menu .menu__list {
+  position: relative;
+  margin-left: 1.1rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid var(--doc-color-border);
+}
+
+/* The line reads as structure, not decoration — it brightens for the section
+   the reader is actually inside. */
+.theme-doc-sidebar-menu .menu__list-item-collapsible--active + .menu__list,
+.theme-doc-sidebar-menu .menu__list:hover {
+  border-left-color: var(--doc-color-primary);
 }
 
 /* Sidebar category chevrons animate with the global motion token. */

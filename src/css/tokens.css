@@ -75,6 +75,7 @@
   --doc-brand-word2: var(--doc-color-primary);   /* remaining words */
   --doc-nav-link-hover-bg: var(--doc-color-surface-2);
   --doc-nav-search-bg: var(--doc-color-surface);
+  --doc-nav-search-width: 17rem;     /* navbar search box; collapses on mobile */
   --doc-nav-search-focus-ring: color-mix(in srgb, var(--doc-color-primary) 22%, transparent);
 
   /* ── Code blocks ── */

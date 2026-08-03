@@ -36,11 +36,15 @@ const SAMPLE_PATHS = [
   'docs/guides/projects-and-workspaces.md',
   'docs/guides/managing-projects.md',
   'docs/developers/projects-api',
+  'docs/developers/members-api',
+  'docs/developers/files-api',
 ];
 
 /** Routes the deleted pages served, used to find inbound references. */
 const SAMPLE_ROUTES = [
   '/developers/projects-api',
+  '/developers/members-api',
+  '/developers/files-api',
   '/guides/projects-and-workspaces',
   '/guides/managing-projects',
 ];

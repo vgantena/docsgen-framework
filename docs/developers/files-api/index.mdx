@@ -1,0 +1,33 @@
+---
+sidebar_position: 1
+title: Files API
+sidebar_label: Overview
+description: Files attached to a project, and how to upload and remove them.
+---
+
+# Files API
+
+A file belongs to exactly one project. Deleting the project deletes its files —
+see [Delete a project](/developers/projects-api/delete-project).
+
+## The file object
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | File identifier, for example `file_2Bd7q`. |
+| `project_id` | string | The project the file belongs to. |
+| `name` | string | Original file name, 1–255 characters. |
+| `size_bytes` | integer | Size on disk. |
+| `uploaded_at` | string | Timestamp of the upload. |
+
+## Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| [`POST /v1/projects/{id}/files`](/developers/files-api/upload-file) | Upload a file to a project. |
+| [`DELETE /v1/files/{id}`](/developers/files-api/delete-file) | Delete a file. |
+
+## Related
+
+- [Projects API](/developers/projects-api/) — the resource files hang off
+- [Authentication](/developers/authentication) — how to authorize these calls
