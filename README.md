@@ -165,6 +165,8 @@ docgen/               planner + KB export manifests and plans
 
 ## Adoption checklist
 
+**Gather your inputs first.** [What you need to supply](docs/framework/inputs.md) lists every value and decision the framework asks for — identity, credentials, your KB category vocabulary, deployment hostnames — with what breaks if you skip each one. Collecting the first two sections up front avoids stalling halfway through the steps below.
+
 1. `npm install` → `npm run doctor` — fix failures, note feature warnings.
 2. Rebrand in one command (add `--fresh --yes` to also clear the worked-example content; `--dry-run` to preview):
 
