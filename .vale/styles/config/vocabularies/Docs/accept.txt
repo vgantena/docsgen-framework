@@ -41,3 +41,6 @@ SDKs?
 [Aa]nonymi[sz]ation
 [Rr]ebrand(ed|ing)?
 localStorage
+[Gg]itignored
+[Hh]ostnames?
+[Aa]llowlist(s|ed)?
